@@ -1,0 +1,8 @@
+pandas
+yfinance
+openpyxl
+requests
+gspread
+gspread-dataframe
+google-auth
+matplotlib

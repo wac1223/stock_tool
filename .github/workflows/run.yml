@@ -31,9 +31,9 @@ jobs:
 
       - name: Run stock bot
         env:
-              LINE_TOKEN: ${{ secrets.LINE_TOKEN }}
-              USER_ID: ${{ secrets.USER_ID }}
-              GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
+          LINE_TOKEN: ${{ secrets.LINE_TOKEN }}
+          USER_ID: ${{ secrets.USER_ID }}
+          GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
         run: |
               echo "=== Running stock bot ==="
               python main.py

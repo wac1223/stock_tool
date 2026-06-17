@@ -596,6 +596,7 @@ try:
         f"損益: {row['損益']:,.0f}円\n"
         f"損益率: {row['損益率(%)']}%\n\n"
     )
+    sheet_url = "https://docs.google.com/spreadsheets/d/1QndFPPD7_-0iFRQe_37oALHeDlJz_kvfvzrZZ1rSlAU/edit"
     print("===== TOP3 =====")
     print(top3)
 
@@ -647,7 +648,6 @@ try:
         headers=headers,
         json=payload
     )
-
     print("LINE送信:", r.status_code)
     print(r.text)
 except Exception as e:

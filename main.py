@@ -160,7 +160,7 @@ for _, row in watchlist.iterrows():
         current_price = float(close_prices.iloc[-1])
         previous_close = float(close_prices.iloc[-2])
 
-        shares = row["株数"]
+        shares = float(row["株数"])
         change = current_price - previous_close
         change_percent = (change / previous_close) * 100
 

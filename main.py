@@ -596,7 +596,8 @@ try:
         f"損益: {row['損益']:,.0f}円\n"
         f"損益率: {row['損益率(%)']}%\n\n"
     )
-    sheet_url = "https://docs.google.com/spreadsheets/d/1QndFPPD7_-0iFRQe_37oALHeDlJz_kvfvzrZZ1rSlAU/edit"
+    
+    
     print("===== TOP3 =====")
     print(top3)
 
@@ -611,7 +612,12 @@ try:
 #        f"({row['前日比(%)']}%)\n"
 #        f"評価損益: {row['損益']:,.0f}円 "
 #        f"({row['損益率(%)']}%)\n\n")
+    sheet_url = "https://docs.google.com/spreadsheets/d/1QndFPPD7_-0iFRQe_37oALHeDlJz_kvfvzrZZ1rSlAU/edit"
 
+    message += (
+    "\n📊 詳細はこちら\n"
+    f"{sheet_url}\n"
+    )
     url = "https://api.line.me/v2/bot/message/push"
 
     headers = {

@@ -6,17 +6,19 @@ import pandas as pd
 import yfinance as yf
 import matplotlib.pyplot as plt
 import gspread
-
+from zoneinfo import ZoneInfo
 from datetime import datetime
 from google.oauth2.service_account import Credentials
 
+now = datetime.now(ZoneInfo("Asia/Tokyo"))
+
 #本番環境
-LINE_TOKEN = os.environ["LINE_TOKEN"]
-USER_ID = os.environ["USER_ID"]
+#LINE_TOKEN = os.environ["LINE_TOKEN"]
+#USER_ID = os.environ["USER_ID"]
 
 #ローカル環境
-#LINE_TOKEN = os.getenv("LINE_TOKEN", "")
-#USER_ID = os.getenv("USER_ID", "")
+LINE_TOKEN = os.getenv("LINE_TOKEN", "")
+USER_ID = os.getenv("USER_ID", "")
 
 
 scope = [

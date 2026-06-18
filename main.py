@@ -157,14 +157,14 @@ for _, row in watchlist.iterrows():
             print(f"[SKIP] {symbol} 有効な株価不足")
             continue
 
-        current_price = float(close_prices.iloc[-1])
+        close_price = float(close_prices.iloc[-1])
         previous_close = float(close_prices.iloc[-2])
 
         shares = float(row["株数"])
-        change = current_price - previous_close
+        change = close_price - previous_close
         change_percent = (change / previous_close) * 100
 
-        market_value = current_price * shares
+        market_value = close_price * shares
         cost_value = purchase_price * shares
         profit = market_value - cost_value
         profit_percent = (profit / cost_value) * 100
@@ -176,7 +176,7 @@ for _, row in watchlist.iterrows():
             "会社名": company_name,
             "株数": shares,
             "購入価格": round(purchase_price, 2),
-            "現在価格": round(current_price, 2),
+            "現在価格": round(close_price, 2),
             "前日終値": round(previous_close, 2),
             "前日差額": round(change, 2),
             "前日比(%)": round(change_percent, 2),
@@ -205,6 +205,7 @@ worksheet.update(
 
 print("保有状況更新完了")
 
+
 if result_df.empty:
     print("有効データなし終了")
     exit()
@@ -216,7 +217,28 @@ if result_df.empty:
 total_market_value = result_df["評価額"].sum()
 total_cost_value = result_df["取得額"].sum()
 total_profit = result_df["損益"].sum()
-total_profit_percent = round((total_profit / total_cost_value ) * 100,2)
+
+if total_cost_value > 0:
+    total_profit_percent = round(
+        total_profit / total_cost_value * 100,
+        2
+    )
+else:
+    total_profit_percent = 0
+
+# =========================
+# 資産推移シート更新
+# =========================
+
+history_ws = spreadsheet.worksheet("資産推移")
+
+history_ws.append_row([
+    datetime.now().strftime("%Y-%m-%d %H:%M"),
+    int(total_market_value),
+    int(total_cost_value),
+    int(total_profit),
+    float(total_profit_percent)
+])
 # =========================
 # 資産履歴作成
 # =========================

@@ -235,7 +235,7 @@ else:
 history_ws = spreadsheet.worksheet("資産推移")
 
 history_ws.append_row([
-    datetime.now().strftime("%Y-%m-%d %H:%M"),
+    now.strftime("%Y-%m-%d %H:%M"),
     int(total_market_value),
     int(total_cost_value),
     int(total_profit),
@@ -254,7 +254,7 @@ else:
     total_profit_percent = 0
 
 asset_today = pd.DataFrame([{
-    "日時": datetime.now().strftime("%Y-%m-%d %H:%M"),
+    "日時": now.strftime("%Y-%m-%d %H:%M"),
     "総評価額": total_market_value,
     "総取得額": total_cost_value,
     "総損益": total_profit,

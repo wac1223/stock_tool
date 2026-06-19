@@ -13,12 +13,12 @@ from google.oauth2.service_account import Credentials
 now = datetime.now(ZoneInfo("Asia/Tokyo"))
 
 #本番環境
-#LINE_TOKEN = os.environ["LINE_TOKEN"]
-#USER_ID = os.environ["USER_ID"]
+LINE_TOKEN = os.environ["LINE_TOKEN"]
+USER_ID = os.environ["USER_ID"]
 
 #ローカル環境
-LINE_TOKEN = os.getenv("LINE_TOKEN", "")
-USER_ID = os.getenv("USER_ID", "")
+#LINE_TOKEN = os.getenv("LINE_TOKEN", "")
+#USER_ID = os.getenv("USER_ID", "")
 
 
 scope = [
@@ -512,6 +512,41 @@ watch_df = result_df[result_df["銘柄"].isin([
     ])
 ]
 # =========================
+# 監視銘柄状況
+# =========================# 
+watch_ws = spreadsheet.worksheet("監視銘柄")
+
+watch_df = pd.DataFrame(
+    watch_ws.get_all_records()
+)
+watch_message = "\n👀 監視銘柄\n\n"
+
+for _, row in watch_df.iterrows():
+
+    symbol = row["銘柄"]
+
+    stock = yf.Ticker(symbol)
+    data = stock.history(period="5d")
+
+    if len(data) < 2:
+        continue
+
+    current_price = float(data["Close"].iloc[-1])
+    previous_close = float(data["Close"].iloc[-2])
+
+    change = current_price - previous_close
+    change_pct = (
+        change / previous_close * 100
+    )
+
+    watch_message += (
+        f"{row['会社名']}\n"
+        f"終値: {current_price:.0f}円\n"
+        f"前日比: {change:+.0f}円 "
+        f"({change_pct:+.2f}%)\n\n"
+    )
+# 
+# =========================
 # ダッシュボード出力
 # =========================
 try:
@@ -608,6 +643,7 @@ try:
     bottom3 = ranking.tail(3)
 
     message += "⚠️ 下位3銘柄\n\n"
+    message += watch_message
 
     for i, (_, row) in enumerate(
     bottom3.sort_values("損益率(%)").iterrows(),

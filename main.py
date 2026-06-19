@@ -72,7 +72,7 @@ except Exception as e:
 # =========================
 # ログ
 # =========================
-print(f"[START] {datetime.now()} 実行開始")
+print(f"[START] {now} 実行開始")
 
 # =========================
 # データ読み込み
@@ -293,7 +293,7 @@ asset_history.to_csv(
 # =========================
 
 daily_today = pd.DataFrame([{
-    "日付": datetime.now().strftime("%Y-%m-%d"),
+    "日付": now.strftime("%Y-%m-%d"),
     "総評価額": total_market_value,
     "総取得額": total_cost_value,
     "総損益": total_profit,
@@ -315,7 +315,7 @@ else:
         ]
     )
 
-today = datetime.now().strftime("%Y-%m-%d")
+today = now.strftime("%Y-%m-%d")
 
 if (
     len(daily_history) == 0
@@ -435,7 +435,7 @@ except Exception as e:
 # 履歴作成
 # =========================
 history_df = result_df[["銘柄", "現在価格"]].copy()
-history_df["日付"] = datetime.now().strftime("%Y-%m-%d")
+history_df["日付"] = now.strftime("%Y-%m-%d")
 history_df = history_df[["日付", "銘柄", "現在価格"]]
 
 # =========================
@@ -494,23 +494,7 @@ summary_df = pd.DataFrame({
         worst
     ]
 })
-# =========================
-# 監視銘柄抽出
-# =========================
 
-watch_df = result_df[result_df["銘柄"].isin([
-        "247A.T",
-        "5577.T",
-        "9342.T",
-        "4412.T",
-        "5532.T",
-        "3984.T",
-        "4431.T",
-        "4054.T",
-        "7072.T",
-        "7033.T"
-    ])
-]
 # =========================
 # 監視銘柄状況
 # =========================
@@ -649,7 +633,7 @@ try:
     bottom3 = ranking.tail(3)
 
     message += "⚠️ 下位3銘柄\n\n"
-    message += watch_message
+   
 
     for i, (_, row) in enumerate(
     bottom3.sort_values("損益率(%)").iterrows(),
@@ -670,7 +654,7 @@ try:
     print("===== BOTTOM3 =====")
     print(bottom3)
 #    for _, row in ranking.iterrows():
-
+    message += watch_message
 #     message += (
 #        f"■ {row['会社名']}\n"
 #        f"終値: {row['現在価格']}\n"

@@ -513,39 +513,45 @@ watch_df = result_df[result_df["銘柄"].isin([
 ]
 # =========================
 # 監視銘柄状況
-# =========================# 
+# =========================
+
 watch_ws = spreadsheet.worksheet("監視銘柄")
 
 watch_df = pd.DataFrame(
     watch_ws.get_all_records()
 )
+
 watch_message = "\n👀 監視銘柄\n\n"
 
 for _, row in watch_df.iterrows():
 
-    symbol = row["銘柄"]
+    try:
+        symbol = row["銘柄"]
 
-    stock = yf.Ticker(symbol)
-    data = stock.history(period="5d")
+        stock = yf.Ticker(symbol)
+        data = stock.history(period="5d")
 
-    if len(data) < 2:
+        if data is None or len(data) < 2:
+            continue
+
+        current_price = float(data["Close"].iloc[-1])
+        previous_close = float(data["Close"].iloc[-2])
+
+        change = current_price - previous_close
+        change_pct = (
+            change / previous_close * 100
+        )
+
+        watch_message += (
+            f"📌 {row['会社名']}\n"
+            f"終値: {current_price:.0f}円\n"
+            f"前日比: {change:+.0f}円 "
+            f"({change_pct:+.2f}%)\n\n"
+        )
+
+    except Exception as e:
+        print(f"[WATCH ERROR] {symbol}: {e}")
         continue
-
-    current_price = float(data["Close"].iloc[-1])
-    previous_close = float(data["Close"].iloc[-2])
-
-    change = current_price - previous_close
-    change_pct = (
-        change / previous_close * 100
-    )
-
-    watch_message += (
-        f"{row['会社名']}\n"
-        f"終値: {current_price:.0f}円\n"
-        f"前日比: {change:+.0f}円 "
-        f"({change_pct:+.2f}%)\n\n"
-    )
-# 
 # =========================
 # ダッシュボード出力
 # =========================

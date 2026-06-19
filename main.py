@@ -353,7 +353,7 @@ plt.plot(
     asset_history["総評価額"],
     linewidth=3,
     marker="o",
-    label="総評価額"
+    label="Portfolio Value"
 )
 
 plt.plot(
@@ -361,7 +361,7 @@ plt.plot(
     asset_history["総取得額"],
     linewidth=2,
     linestyle="--",
-    label="総取得額"
+    label="Cost Value"
 )
 
 plt.title("Portfolio Value History")
@@ -390,7 +390,7 @@ plt.plot(
     daily_history["総評価額"],
     linewidth=3,
     marker="o",
-    label="総評価額"
+    label="Portfolio Value"
 )
 
 plt.plot(
@@ -398,7 +398,7 @@ plt.plot(
     daily_history["総取得額"],
     linewidth=2,
     linestyle="--",
-    label="総取得額"
+    label="Cost Value"
 )
 
 plt.title("Daily Portfolio History")

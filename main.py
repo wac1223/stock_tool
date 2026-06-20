@@ -20,6 +20,12 @@ USER_ID = os.environ["USER_ID"]
 #LINE_TOKEN = os.getenv("LINE_TOKEN", "")
 #USER_ID = os.getenv("USER_ID", "")
 
+usd_jpy = yf.Ticker("JPY=X")
+usd_rate = float(
+    usd_jpy.history(period="1d")["Close"].iloc[-1]
+)
+
+print(f"USDJPY = {usd_rate}")
 
 scope = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -128,7 +134,18 @@ try:
 except Exception as e:
     print("スプレッドシート読み込み失敗:", e)
     exit()
-    
+# =========================
+# 為替取得
+# =========================
+
+
+    yf.Ticker("JPY=X")
+    .history(period="1d")["Close"]
+    .iloc[-1]
+
+
+print(f"USDJPY: {usd_rate}")
+
 result = []
 
 # =========================
@@ -143,7 +160,17 @@ for _, row in watchlist.iterrows():
         stock = yf.Ticker(symbol)
         data = stock.history(period="5d")
 
-        # データが無い場合
+        currency = stock.info.get(
+         "currency",
+         "JPY"
+        )
+
+        print(
+        f"{symbol} currency={currency}"
+        )
+
+
+# データが無い場合
         if data is None or data.empty:
             print(f"[SKIP] {symbol} データなし")
             continue
@@ -163,13 +190,27 @@ for _, row in watchlist.iterrows():
         previous_close = float(close_prices.iloc[-2])
 
         shares = float(row["株数"])
+
         change = close_price - previous_close
-        change_percent = (change / previous_close) * 100
+        change_percent = (
+            change / previous_close * 100
+        )
 
         market_value = close_price * shares
         cost_value = purchase_price * shares
+
+        if currency == "USD":
+            market_value *= usd_rate
+            cost_value *= usd_rate
+
         profit = market_value - cost_value
-        profit_percent = (profit / cost_value) * 100
+
+        if cost_value > 0:
+            profit_percent = (
+            profit / cost_value * 100
+            )
+        else:
+            profit_percent = 0
 
         company_name = row["会社名"]
 

@@ -134,17 +134,6 @@ try:
 except Exception as e:
     print("スプレッドシート読み込み失敗:", e)
     exit()
-# =========================
-# 為替取得
-# =========================
-
-
-    yf.Ticker("JPY=X")
-    .history(period="1d")["Close"]
-    .iloc[-1]
-
-
-print(f"USDJPY: {usd_rate}")
 
 result = []
 

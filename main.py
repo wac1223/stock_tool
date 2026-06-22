@@ -596,7 +596,11 @@ for _, row in watch_df.iterrows():
             watch_message += (
                 f"52週安値: {low_52:.0f}円\n"
             )
-
+        print(
+            symbol,
+            "PER=", per,
+            "PBR=", pbr
+        )
         if per:
             watch_message += (
                 f"PER: {per:.1f}\n"

@@ -151,7 +151,7 @@ for _, row in watchlist.iterrows():
         data = stock.history(period="5d")
         
 
-        info = stock.info
+        info = stock.history()
         print("info取得成功", symbol)
 
         high_52 = info.get("fiftyTwoWeekHigh")

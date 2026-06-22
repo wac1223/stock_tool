@@ -595,11 +595,12 @@ for _, row in watch_df.iterrows():
             watch_message += (
                 f"PBR: {pbr:.1f}\n"
             )
+        watch_message += "\n"
         print("====")
         print(symbol)
         print("PER", info.get("trailingPE"))
         print("PBR", info.get("priceToBook"))
-        watch_message += "\n"
+        
     except Exception as e:
         print(f"[WATCH ERROR] {symbol}: {e}")
         continue

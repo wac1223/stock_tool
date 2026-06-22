@@ -148,7 +148,13 @@ for _, row in watchlist.iterrows():
 
         stock = yf.Ticker(symbol)
         data = stock.history(period="5d")
+        info = stock.info
 
+        high_52 = info.get("fiftyTwoWeekHigh")
+        low_52 = info.get("fiftyTwoWeekLow")
+
+        per = info.get("trailingPE")
+        pbr = info.get("priceToBook")
         currency = stock.info.get(
          "currency",
          "JPY"
@@ -549,6 +555,12 @@ for _, row in watch_df.iterrows():
             continue
 
         current_price = float(data["Close"].iloc[-1])
+        if high_52:
+            high_gap = (
+            (current_price / high_52) - 1
+            ) * 100
+        else:
+            high_gap = None
         previous_close = float(data["Close"].iloc[-2])
 
         change = current_price - previous_close
@@ -560,9 +572,31 @@ for _, row in watch_df.iterrows():
             f"📌 {row['会社名']}\n"
             f"終値: {current_price:.0f}円\n"
             f"前日比: {change:+.0f}円 "
-            f"({change_pct:+.2f}%)\n\n"
+            f"({change_pct:+.2f}%)\n"
         )
 
+        if high_52:
+            watch_message += (
+                f"52週高値: {high_52:.0f}円\n"
+                f"高値まで: {high_gap:.1f}%\n"
+            )
+
+        if low_52:
+            watch_message += (
+                f"52週安値: {low_52:.0f}円\n"
+            )
+
+        if per:
+            watch_message += (
+                f"PER: {per:.1f}\n"
+            )
+
+        if pbr:
+            watch_message += (
+                f"PBR: {pbr:.1f}\n"
+            )
+
+        watch_message += "\n"
     except Exception as e:
         print(f"[WATCH ERROR] {symbol}: {e}")
         continue

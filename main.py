@@ -540,10 +540,15 @@ watch_ws = spreadsheet.worksheet("監視銘柄")
 watch_df = pd.DataFrame(
     watch_ws.get_all_records()
 )
-
+print("====")
+print(symbol)
+print("PER", info.get("trailingPE"))
+print("PBR", info.get("priceToBook"))
+ 
 watch_message = "\n👀 監視銘柄\n\n"
 
 for _, row in watch_df.iterrows():
+    print("ループ開始")
 
     try:
         symbol = row["銘柄"]
@@ -596,10 +601,6 @@ for _, row in watch_df.iterrows():
                 f"PBR: {pbr:.1f}\n"
             )
         watch_message += "\n"
-        print("====")
-        print(symbol)
-        print("PER", info.get("trailingPE"))
-        print("PBR", info.get("priceToBook"))
         
     except Exception as e:
         print(f"[WATCH ERROR] {symbol}: {e}")

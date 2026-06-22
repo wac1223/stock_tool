@@ -145,10 +145,14 @@ for _, row in watchlist.iterrows():
     try:
         symbol = row["銘柄"]
         purchase_price = float(row["購入価格"])
+        print("取得開始", symbol)
 
         stock = yf.Ticker(symbol)
         data = stock.history(period="5d")
+        
+
         info = stock.info
+        print("info取得成功", symbol)
 
         high_52 = info.get("fiftyTwoWeekHigh")
         low_52 = info.get("fiftyTwoWeekLow")

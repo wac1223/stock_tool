@@ -151,14 +151,6 @@ for _, row in watchlist.iterrows():
         data = stock.history(period="5d")
         
 
-        info = stock.history()
-        print("info取得成功", symbol)
-
-        high_52 = info.get("fiftyTwoWeekHigh")
-        low_52 = info.get("fiftyTwoWeekLow")
-
-        per = info.get("trailingPE")
-        pbr = info.get("priceToBook")
         currency = stock.info.get(
          "currency",
          "JPY"
@@ -173,10 +165,6 @@ for _, row in watchlist.iterrows():
         if data is None or data.empty:
             print(f"[SKIP] {symbol} データなし")
             continue
-
-        print(symbol)
-        print(data.tail())
-        print("------------")
 
         close_prices = data["Close"].dropna()
 
@@ -545,15 +533,10 @@ watch_ws = spreadsheet.worksheet("監視銘柄")
 watch_df = pd.DataFrame(
     watch_ws.get_all_records()
 )
-print("====")
-print(symbol)
-print("PER", info.get("trailingPE"))
-print("PBR", info.get("priceToBook"))
  
 watch_message = "\n👀 監視銘柄\n\n"
 
 for _, row in watch_df.iterrows():
-    print("ループ開始")
 
     try:
         symbol = row["銘柄"]
@@ -566,12 +549,26 @@ for _, row in watch_df.iterrows():
             continue
 
         current_price = float(data["Close"].iloc[-1])
-        if high_52:
-            high_gap = (
+        year_data = stock.history(period="1y")
+
+        high_52 = year_data["High"].max()
+        low_52 = year_data["Low"].min()
+
+        high_gap = (
             (current_price / high_52) - 1
-            ) * 100
+        ) * 100
+
+        low_gap = (
+            (current_price / low_52) - 1
+        ) * 100
+
+        if len(year_data) >= 5:
+            change_5d = (
+            (current_price / year_data["Close"].iloc[-5]) - 1
+        ) * 100
         else:
-            high_gap = None
+            change_5d = None
+        
         previous_close = float(data["Close"].iloc[-2])
 
         change = current_price - previous_close
@@ -586,30 +583,17 @@ for _, row in watch_df.iterrows():
             f"({change_pct:+.2f}%)\n"
         )
 
-        if high_52:
+        if change_5d is not None:
             watch_message += (
-                f"52週高値: {high_52:.0f}円\n"
-                f"高値まで: {high_gap:.1f}%\n"
+                f"5日騰落率: {change_5d:+.2f}%\n"
             )
 
-        if low_52:
-            watch_message += (
-                f"52週安値: {low_52:.0f}円\n"
-            )
-        print(
-            symbol,
-            "PER=", per,
-            "PBR=", pbr
+        watch_message += (
+            f"52週高値まで: {high_gap:.1f}%\n"
+            f"52週安値から: {low_gap:.1f}%\n\n"
         )
-        if per:
-            watch_message += (
-                f"PER: {per:.1f}\n"
-            )
 
-        if pbr:
-            watch_message += (
-                f"PBR: {pbr:.1f}\n"
-            )
+               
         watch_message += "\n"
         
     except Exception as e:

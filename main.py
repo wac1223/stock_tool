@@ -229,7 +229,8 @@ for _, row in watchlist.iterrows():
         })
 
     except Exception as e:
-        print(f"[ERROR] {symbol}:", e)
+        print(f"[WATCH ERROR] {symbol}: {e}")
+        print("失敗銘柄", symbol)
         continue
 
 # =========================
@@ -556,10 +557,11 @@ for _, row in watch_df.iterrows():
 
     try:
         symbol = row["銘柄"]
+        print("銘柄", symbol)
 
         stock = yf.Ticker(symbol)
         data = stock.history(period="5d")
-
+        print("株価取得成功", symbol)
         if data is None or len(data) < 2:
             continue
 

@@ -118,8 +118,14 @@ try:
         * buy_trades["単価"]
          ).sum()
 
+        print("========")
+        print(symbol)
+        print("buy_shares:", buy_shares, type(buy_shares))
+        print("total_cost:", total_cost, type(total_cost))
+
         avg_price = total_cost / buy_shares
-            
+
+
         company_name = buy_trades.iloc[0]["会社名"]
 
         portfolio.append({

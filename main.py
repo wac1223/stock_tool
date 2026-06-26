@@ -28,53 +28,6 @@ usd_rate = float(
 
 print(f"USDJPY = {usd_rate}")
 
-scope = [
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive"
-]
-
-
-if os.path.exists("service_account.json"):
-    
-    creds = Credentials.from_service_account_file(
-        "service_account.json",
-        scopes=scope
-    )
-
-else:
-
-    service_account_info = json.loads(
-        os.environ["GOOGLE_SERVICE_ACCOUNT"]
-    )
-
-    creds = Credentials.from_service_account_info(
-        service_account_info,
-        scopes=scope
-    )
-client = gspread.authorize(creds)
-
-try:
-
-    spreadsheet = client.open_by_key(
-        "1QndFPPD7_-0iFRQe_37oALHeDlJz_kvfvzrZZ1rSlAU"
-    )
-
-    print("Google Sheets接続成功")
-
-    print(spreadsheet.title)
-
-except Exception as e:
-
-    print("Google Sheets接続失敗")
-
-    print(e)
-
-    worksheet = spreadsheet.add_worksheet(
-    title="保有状況",
-    rows=100,
-    cols=20)    
-
-
 
 # =========================
 # ログ

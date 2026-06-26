@@ -9,6 +9,7 @@ import gspread
 from zoneinfo import ZoneInfo
 from datetime import datetime
 from google.oauth2.service_account import Credentials
+from watchlist import analyze_watchlist
 
 now = datetime.now(ZoneInfo("Asia/Tokyo"))
 
@@ -778,6 +779,8 @@ try:
 except Exception as e:
     print("LINE送信失敗:", e)
 
+# 監視銘柄分析
+analyze_watchlist()
 
 print("銘柄数:", len(result_df))
 print(result_df[["銘柄","評価額"]])

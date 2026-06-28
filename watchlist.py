@@ -38,6 +38,36 @@ def calculate_rsi(close_prices, period=14):
 
     return round(float(rsi.iloc[-1]), 1)
 
+###評価を追加###
+def calculate_score(rsi, kairi25, change_percent, volume_ratio):
+
+    score = 0
+
+    if 40 <= rsi <= 65:
+        score += 1
+
+    if -3 <= kairi25 <= 5:
+        score += 1
+
+    if change_percent > 0:
+        score += 1
+    
+    if volume_ratio >= 1.5:
+        score += 1
+
+    if score == 3:
+        return "★★★★★"
+
+    elif score == 2:
+        return "★★★★☆"
+
+    elif score == 1:
+        return "★★★☆☆"
+
+    else:
+        return "★★☆☆☆"
+    
+
 
 def analyze_watchlist():
 
@@ -83,6 +113,22 @@ def analyze_watchlist():
                 2
             )
 
+            avg_volume = int(
+                data["Volume"].rolling(25).mean().iloc[-1]
+            )
+
+            volume_ratio = round(
+                volume / avg_volume,
+                2
+            )
+
+            score = calculate_score(
+                rsi,
+                kairi25,
+                change_percent,
+                volume_ratio
+            )
+
 
 
             results.append({
@@ -91,8 +137,10 @@ def analyze_watchlist():
                 "前日比": round(change, 2),
                 "前日比％": round(change_percent, 2),
                 "出来高": volume,
-                "RSI": rsi
-                "25日乖離率": kairi25
+                "RSI": rsi,
+                "25日乖離率": kairi25,
+                "出来高倍率": volume_ratio,
+                "評価": score,
             })
 
             print(
@@ -102,6 +150,7 @@ def analyze_watchlist():
                 f"出来高:{volume:,}"
                 f"RSI:{rsi:.1f}"
                 f" 25日乖離:{kairi25:+.2f}%"
+                f" 評価:{score}"
 
             )
 
@@ -116,14 +165,16 @@ def analyze_watchlist():
     for i, result in enumerate(results, start=2):
 
         watch_sheet.update(
-            range_name=f"E{i}:J{i}",
+            range_name=f"E{i}:L{i}",
             values=[[
                 result["現在値"],
                 result["前日比"],
                 result["前日比％"],
                 result["出来高"],
                 result["RSI"],
-                result["25日乖離率"]
+                result["25日乖離率"],
+                result["出来高倍率"],
+                result["評価"]
             ]]
             )
     print()

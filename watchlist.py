@@ -2,8 +2,12 @@ import pandas as pd
 import yfinance as yf
 
 from sheets import spreadsheet
+from ai_comment import make_ai_comment
+from score import calculate_score
 
-###現在地～出来高まで追加
+
+
+###現在値～出来高まで追加
 def calculate_rsi(close_prices, period=14):
 
     delta = close_prices.diff()
@@ -37,36 +41,6 @@ def calculate_rsi(close_prices, period=14):
     rsi = 100 - (100 / (1 + rs))
 
     return round(float(rsi.iloc[-1]), 1)
-
-###評価を追加###
-def calculate_score(rsi, kairi25, change_percent, volume_ratio):
-
-    score = 0
-
-    if 40 <= rsi <= 65:
-        score += 1
-
-    if -3 <= kairi25 <= 5:
-        score += 1
-
-    if change_percent > 0:
-        score += 1
-    
-    if volume_ratio >= 1.5:
-        score += 1
-
-    if score == 3:
-        return "★★★★★"
-
-    elif score == 2:
-        return "★★★★☆"
-
-    elif score == 1:
-        return "★★★☆☆"
-
-    else:
-        return "★★☆☆☆"
-    
 
 
 def analyze_watchlist():
@@ -122,13 +96,17 @@ def analyze_watchlist():
                 2
             )
 
-            score = calculate_score(
+            score, rank, stars, reasons = calculate_score(
                 rsi,
                 kairi25,
-                change_percent,
                 volume_ratio
             )
-
+            ai_comment = make_ai_comment(
+                rsi,
+                kairi25,
+                volume_ratio
+            )
+            
 
 
             results.append({
@@ -140,18 +118,27 @@ def analyze_watchlist():
                 "RSI": rsi,
                 "25日乖離率": kairi25,
                 "出来高倍率": volume_ratio,
-                "評価": score,
+                "強気スコア": score,
+                "ランク": rank,
+                "評価": stars,
+                "理由": "・".join(reasons),
+                "AIコメント": ai_comment,
             })
 
             print(
-                f"{symbol} "
-                f"{close:.2f}円 "
-                f"{change_percent:+.2f}% "
-                f"出来高:{volume:,}"
-                f"RSI:{rsi:.1f}"
-                f" 25日乖離:{kairi25:+.2f}%"
-                f" 評価:{score}"
-
+                f"銘柄{symbol} "
+                f"現在値{close:.2f}円 "
+                f"前日比{round(change, 2)} "
+                f"前日比％{change_percent:+.2f}% "
+                f" 出来高:{volume:,}"
+                f" RSI:{rsi:.1f}"
+                f" 25日乖離率:{kairi25:+.2f}%"
+                f" 出来高倍率:{volume_ratio}"
+                f" 強気スコア:{score}"
+                f" ランク:{rank}"
+                f" 評価:{stars}"
+                f" 理由:(reasons)"
+                f" AIコメント:{ai_comment}"
             )
 
         except Exception as e:
@@ -165,7 +152,7 @@ def analyze_watchlist():
     for i, result in enumerate(results, start=2):
 
         watch_sheet.update(
-            range_name=f"E{i}:L{i}",
+            range_name=f"E{i}:M{i}",
             values=[[
                 result["現在値"],
                 result["前日比"],
@@ -174,7 +161,8 @@ def analyze_watchlist():
                 result["RSI"],
                 result["25日乖離率"],
                 result["出来高倍率"],
-                result["評価"]
+                result["評価"],
+                result["理由"]
             ]]
             )
     print()

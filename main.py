@@ -10,16 +10,18 @@ from zoneinfo import ZoneInfo
 from datetime import datetime
 from google.oauth2.service_account import Credentials
 from watchlist import analyze_watchlist
+from sheets import spreadsheet
+from watchlist import analyze_watchlist
 
 now = datetime.now(ZoneInfo("Asia/Tokyo"))
 
 #本番環境
-LINE_TOKEN = os.environ["LINE_TOKEN"]
-USER_ID = os.environ["USER_ID"]
+#LINE_TOKEN = os.environ["LINE_TOKEN"]
+#USER_ID = os.environ["USER_ID"]
 
 #ローカル環境
-#LINE_TOKEN = os.getenv("LINE_TOKEN", "")
-#USER_ID = os.getenv("USER_ID", "")
+LINE_TOKEN = os.getenv("LINE_TOKEN", "")
+USER_ID = os.getenv("USER_ID", "")
 
 usd_jpy = yf.Ticker("JPY=X")
 usd_rate = float(
@@ -109,16 +111,16 @@ for _, row in watchlist.iterrows():
 
         stock = yf.Ticker(symbol)
         data = stock.history(period="5d")
-        
+        currency = "JPY"
 
-        currency = stock.info.get(
-         "currency",
-         "JPY"
-        )
+        #currency = stock.info.get(
+        # "currency",
+        # "JPY"
+        #)
 
-        print(
-        f"{symbol} currency={currency}"
-        )
+       # print(
+       # f"{symbol} currency={currency}"
+       # )
 
 
 # データが無い場合
@@ -146,9 +148,9 @@ for _, row in watchlist.iterrows():
         market_value = close_price * shares
         cost_value = purchase_price * shares
 
-        if currency == "USD":
-            market_value *= usd_rate
-            cost_value *= usd_rate
+       # if currency == "USD":
+       #     market_value *= usd_rate
+       #     cost_value *= usd_rate
 
         profit = market_value - cost_value
 

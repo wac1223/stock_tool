@@ -11,7 +11,7 @@ from datetime import datetime
 from google.oauth2.service_account import Credentials
 from watchlist import analyze_watchlist
 from sheets import spreadsheet
-from watchlist import analyze_watchlist
+
 
 now = datetime.now(ZoneInfo("Asia/Tokyo"))
 

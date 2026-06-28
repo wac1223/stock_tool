@@ -3,6 +3,7 @@ import yfinance as yf
 
 from sheets import spreadsheet
 
+###現在地～出来高まで追加
 def calculate_rsi(close_prices, period=14):
 
     delta = close_prices.diff()
@@ -18,6 +19,25 @@ def calculate_rsi(close_prices, period=14):
     rsi = 100 - (100 / (1 + rs))
 
     return round(rsi.iloc[-1], 2)
+
+
+###RSI関数を追加
+def calculate_rsi(close_prices, period=14):
+
+    delta = close_prices.diff()
+
+    gain = delta.where(delta > 0, 0)
+    loss = -delta.where(delta < 0, 0)
+
+    avg_gain = gain.rolling(window=period).mean()
+    avg_loss = loss.rolling(window=period).mean()
+
+    rs = avg_gain / avg_loss
+
+    rsi = 100 - (100 / (1 + rs))
+
+    return round(float(rsi.iloc[-1]), 1)
+
 
 def analyze_watchlist():
 
@@ -55,6 +75,15 @@ def analyze_watchlist():
 
             volume = int(data["Volume"].iloc[-1])
             rsi = calculate_rsi(data["Close"])
+            
+            ma25 = round(float(data["Close"].rolling(25).mean().iloc[-1]), 2)
+
+            kairi25 = round(
+                (close - ma25) / ma25 * 100,
+                2
+            )
+
+
 
             results.append({
                 "銘柄": symbol,
@@ -63,6 +92,7 @@ def analyze_watchlist():
                 "前日比％": round(change_percent, 2),
                 "出来高": volume,
                 "RSI": rsi
+                "25日乖離率": kairi25
             })
 
             print(
@@ -71,6 +101,8 @@ def analyze_watchlist():
                 f"{change_percent:+.2f}% "
                 f"出来高:{volume:,}"
                 f"RSI:{rsi:.1f}"
+                f" 25日乖離:{kairi25:+.2f}%"
+
             )
 
         except Exception as e:
@@ -84,13 +116,14 @@ def analyze_watchlist():
     for i, result in enumerate(results, start=2):
 
         watch_sheet.update(
-            range_name=f"E{i}:I{i}",
+            range_name=f"E{i}:J{i}",
             values=[[
                 result["現在値"],
                 result["前日比"],
                 result["前日比％"],
                 result["出来高"],
-                result["RSI"]
+                result["RSI"],
+                result["25日乖離率"]
             ]]
             )
     print()

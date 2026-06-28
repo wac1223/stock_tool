@@ -16,12 +16,12 @@ from watchlist import analyze_watchlist
 now = datetime.now(ZoneInfo("Asia/Tokyo"))
 
 #本番環境
-#LINE_TOKEN = os.environ["LINE_TOKEN"]
-#USER_ID = os.environ["USER_ID"]
+LINE_TOKEN = os.environ["LINE_TOKEN"]
+USER_ID = os.environ["USER_ID"]
 
 #ローカル環境
-LINE_TOKEN = os.getenv("LINE_TOKEN", "")
-USER_ID = os.getenv("USER_ID", "")
+#LINE_TOKEN = os.getenv("LINE_TOKEN", "")
+#USER_ID = os.getenv("USER_ID", "")
 
 usd_jpy = yf.Ticker("JPY=X")
 usd_rate = float(

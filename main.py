@@ -110,7 +110,7 @@ for _, row in watchlist.iterrows():
         print("取得開始", symbol)
 
         stock = yf.Ticker(symbol)
-        data = stock.history(period="5d")
+        data = stock.history(period="3mo")
         currency = "JPY"
 
         #currency = stock.info.get(

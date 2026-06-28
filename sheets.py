@@ -18,7 +18,7 @@ if os.path.exists("service_account.json"):
 else:
 
     service_account_info = json.loads(
-        os.environ["GOOGLE_SERVICE_ACCOUNT"]
+            os.environ["GOOGLE_SERVICE_ACCOUNT"]
     )
 
     creds = Credentials.from_service_account_info(
@@ -28,5 +28,5 @@ else:
 
 client = gspread.authorize(creds)
 
-# ここは今main.pyにあるものをそのまま持ってくる
+# スプレッドシートのキーを指定して開く
 spreadsheet = client.open_by_key("1QndFPPD7_-0iFRQe_37oALHeDlJz_kvfvzrZZ1rSlAU")

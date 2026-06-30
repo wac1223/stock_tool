@@ -43,6 +43,23 @@ def calculate_rsi(close_prices, period=14):
     return round(float(rsi.iloc[-1]), 1)
 
 
+###MACD計算
+def calculate_macd(close_prices):
+
+    ema12 = close_prices.ewm(span=12, adjust=False).mean()
+
+    ema26 = close_prices.ewm(span=26, adjust=False).mean()
+
+    macd = ema12 - ema26
+
+    signal = macd.ewm(span=9, adjust=False).mean()
+
+    return (
+        round(float(macd.iloc[-1]), 2),
+        round(float(signal.iloc[-1]), 2)
+    )
+
+
 def analyze_watchlist():
 
     print("===== 監視銘柄分析開始 =====")

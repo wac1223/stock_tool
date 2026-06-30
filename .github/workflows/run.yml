@@ -1,8 +1,6 @@
 name: stock-bot
 
 on:
-  schedule:
-    - cron: "0 * * *" 
   workflow_dispatch:
 
 permissions:
@@ -17,7 +15,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # push の衝突を防ぐ
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -35,8 +33,8 @@ jobs:
           USER_ID: ${{ secrets.USER_ID }}
           GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
         run: |
-              echo "=== Running stock bot ==="
-              python main.py
+          echo "=== Running stock bot ==="
+          python main.py
 
       - name: Commit & Push asset history
         run: |

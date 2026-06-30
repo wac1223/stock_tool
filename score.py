@@ -1,4 +1,10 @@
-def calculate_score(rsi, kairi25, volume_ratio):
+def calculate_score(
+    rsi,
+    kairi25,
+    volume_ratio,
+    macd,
+    signal
+):
     score = 50
     reasons = []
 
@@ -61,5 +67,12 @@ def calculate_score(rsi, kairi25, volume_ratio):
         stars = "★★☆☆☆"
     else:
         stars = "★☆☆☆☆"
+    # MACD
+    if macd > signal:
+        score += 15
+        reasons.append("MACD買いシグナル")
 
+    elif macd < signal:
+        score -= 10
+        reasons.append("MACD売りシグナル")
     return score, rank, stars, reasons

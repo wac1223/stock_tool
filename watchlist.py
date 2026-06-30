@@ -96,6 +96,7 @@ def analyze_watchlist():
 
             volume = int(data["Volume"].iloc[-1])
             rsi = calculate_rsi(data["Close"])
+            macd, signal = calculate_macd(data["Close"])
             
             ma25 = round(float(data["Close"].rolling(25).mean().iloc[-1]), 2)
 
@@ -116,12 +117,16 @@ def analyze_watchlist():
             score, rank, stars, reasons = calculate_score(
                 rsi,
                 kairi25,
-                volume_ratio
-            )
+                volume_ratio,
+                macd,
+                signal
+)
             ai_comment = make_ai_comment(
                 rsi,
                 kairi25,
-                volume_ratio
+                volume_ratio,
+                macd,
+                signal
             )
             
 

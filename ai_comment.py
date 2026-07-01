@@ -1,34 +1,58 @@
-def make_ai_comment(rsi, kairi25, volume_ratio):
-    # 強い上昇
-    if rsi >= 70 and volume_ratio >= 2:
-        return "出来高を伴って強く買われています。短期的には利益確定売りに注意。"
+def make_ai_comment(
+    rsi,
+    kairi25,
+    volume_ratio,
+    macd,
+    signal
+):
+    """
+    AIコメントを返す
+    """
 
-    # 上昇トレンド
-    elif 50 <= rsi < 70 and kairi25 > 0:
-        return "上昇トレンドが継続しています。押し目を待つ戦略も有効です。"
+    comments = []
 
-    # 売られすぎ
-    elif rsi <= 30 and volume_ratio >= 1.5:
-        return "売られすぎ水準です。反発候補として監視したい銘柄です。"
+    # ==========================
+    # MACD
+    # ==========================
+    if macd > signal:
+        comments.append("MACDは買いシグナルです。")
+    else:
+        comments.append("MACDは売りシグナルです。")
 
-    # 下落トレンド
-    elif rsi < 50 and kairi25 < 0:
-        return "下降トレンドです。無理な買いは避けて様子を見ましょう。"
+    # ==========================
+    # RSI
+    # ==========================
+    if rsi >= 70:
+        comments.append("買われ過ぎ水準です。")
 
-    # 出来高だけ増えている
-    elif volume_ratio >= 2:
-        return "出来高が急増しています。材料が出ている可能性があります。"
+    elif rsi <= 30:
+        comments.append("売られ過ぎ水準です。")
 
-    # 25日線から大きく離れている
-    elif kairi25 >= 10:
-        return "25日移動平均線から大きく上に乖離しています。過熱感に注意。"
+    elif 45 <= rsi <= 60:
+        comments.append("RSIは良好な水準です。")
+
+    # ==========================
+    # 25日乖離率
+    # ==========================
+    if kairi25 >= 10:
+        comments.append("25日線から大きく上に乖離しています。")
 
     elif kairi25 <= -10:
-        return "25日移動平均線から大きく下に乖離しています。反発するか注目です。"
+        comments.append("25日線から大きく下に乖離しています。")
 
-    # RSI良好
-    elif 45 <= rsi <= 60:
-        return "値動きは比較的安定しています。トレンドの継続を確認しましょう。"
+    # ==========================
+    # 出来高
+    # ==========================
+    if volume_ratio >= 2:
+        comments.append("出来高が急増しています。")
 
-    # それ以外
-    return "大きな変化はありません。引き続き監視しましょう。"
+    elif volume_ratio >= 1.5:
+        comments.append("出来高が増加しています。")
+
+    # ==========================
+    # 総合コメント
+    # ==========================
+    if not comments:
+        return "大きな変化はありません。引き続き監視しましょう。"
+
+    return " ".join(comments)

@@ -85,6 +85,8 @@ def analyze_watchlist():
             if data.empty:
                 print(f"{symbol} データ取得失敗")
                 continue
+            print(symbol)
+            print(data.tail())
 
             close = float(data["Close"].iloc[-1])
 

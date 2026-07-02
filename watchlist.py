@@ -6,25 +6,6 @@ from ai_comment import make_ai_comment
 from score import calculate_score
 
 
-
-###現在値～出来高まで追加
-#def calculate_rsi(close_prices, period=14):
-
-#    delta = close_prices.diff()
-
-#    gain = delta.clip(lower=0)
-#    loss = -delta.clip(upper=0)
-
- #   avg_gain = gain.rolling(period).mean()
-  #  avg_loss = loss.rolling(period).mean()
-#
- #   rs = avg_gain / avg_loss
-#
- #   rsi = 100 - (100 / (1 + rs))
-#
- #   return round(rsi.iloc[-1], 2)
-
-
 ###RSI関数を追加
 def calculate_rsi(close_prices, period=14):
 
@@ -72,7 +53,7 @@ def analyze_watchlist():
 
     results = []
 
-    for _, row in watch_df.iterrows():
+    for row_number, (_, row) in enumerate(watch_df.iterrows(), start=2):
 
         symbol = row["銘柄"]
 
@@ -196,7 +177,7 @@ def analyze_watchlist():
                 result["ランク"],
                 result["評価"],
                 result["AIコメント"]
-]]
+            ]]
             )
     print(result_df)
 

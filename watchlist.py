@@ -85,8 +85,8 @@ def analyze_watchlist():
             if data.empty:
                 print(f"{symbol} データ取得失敗")
                 continue
-            print(symbol)
-            print(data.tail())
+           # print(symbol)
+           # print(data.tail())
 
             close = float(data["Close"].iloc[-1])
 
@@ -134,6 +134,7 @@ def analyze_watchlist():
 
 
             results.append({
+                "row": row_number,
                 "銘柄": symbol,
                 "現在値": round(close, 2),
                 "前日比": round(change, 2),
@@ -180,7 +181,7 @@ def analyze_watchlist():
     for i, result in enumerate(results, start=2):
 
         watch_sheet.update(
-            range_name=f"E{i}:Q{i}",
+            range_name=f"E{result['row']}:Q{result['row']}",
             values=[[
                 result["現在値"],
                 result["前日比"],
@@ -197,7 +198,6 @@ def analyze_watchlist():
                 result["AIコメント"]
 ]]
             )
-    print()
     print(result_df)
 
     print("===== 監視銘柄分析終了 =====")

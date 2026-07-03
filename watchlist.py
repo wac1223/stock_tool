@@ -65,6 +65,29 @@ def calculate_cross(close_prices):
 
     return "-"
 
+def calculate_bollinger(close_prices):
+
+    ma25 = close_prices.rolling(25).mean()
+
+    std = close_prices.rolling(25).std()
+
+    upper2 = ma25 + std * 2
+    lower2 = ma25 - std * 2
+
+    price = close_prices.iloc[-1]
+
+    if price >= upper2.iloc[-1]:
+        return "+25"
+
+    elif price <= lower2.iloc[-1]:
+        return "-25"
+
+    elif price >= ma25.iloc[-1]:
+        return "+15"
+
+    else:
+        return "-15"
+
 def analyze_watchlist():
 
     print("===== 監視銘柄分析開始 =====")
@@ -110,6 +133,7 @@ def analyze_watchlist():
             rsi = calculate_rsi(data["Close"])
             macd, signal = calculate_macd(data["Close"])
             cross = calculate_cross(data["Close"])
+            bollinger = calculate_bollinger(data["Close"])
             
             ma25 = round(float(data["Close"].rolling(25).mean().iloc[-1]), 2)
 
@@ -140,7 +164,8 @@ def analyze_watchlist():
                 kairi25,
                 volume_ratio,
                 macd,
-                signal
+                signal,
+                cross
             )
             
 

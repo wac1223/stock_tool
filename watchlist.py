@@ -1,5 +1,6 @@
 import pandas as pd
 import yfinance as yf
+import time
 
 from sheets import spreadsheet
 from ai_comment import make_ai_comment
@@ -84,13 +85,18 @@ def analyze_watchlist():
 
             stock = yf.Ticker(symbol)
 
-            data = stock.history(period="3mo")
+            for _ in range(3):
+
+                data = stock.history(period="3mo")
+
+                if not data.empty:
+                    break
 
             if data.empty:
-                print(f"{symbol} データ取得失敗")
+                print(f"{symbol} データ取得失敗（3回試行）")
                 continue
-           # print(symbol)
-           # print(data.tail())
+            # print(symbol)
+            # print(data.tail())
 
             close = float(data["Close"].iloc[-1])
 
@@ -126,8 +132,9 @@ def analyze_watchlist():
                 kairi25,
                 volume_ratio,
                 macd,
-                signal
-)
+                signal,
+                cross
+            )
             ai_comment = make_ai_comment(
                 rsi,
                 kairi25,

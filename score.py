@@ -3,7 +3,8 @@ def calculate_score(
     kairi25,
     volume_ratio,
     macd,
-    signal
+    signal,
+    cross
 ):
     score = 50
     reasons = []
@@ -39,7 +40,15 @@ def calculate_score(
     elif volume_ratio >= 1.5:
         score += 10
         reasons.append("出来高増加")
+# GC/DC
+    if cross == "GC":
+        score += 15
+        reasons.append("ゴールデンクロス")
 
+    elif cross == "DC":
+        score -= 15
+        reasons.append("デッドクロス")
+        
     # 0～100点
     score = max(0, min(score, 100))
     # ランク判定

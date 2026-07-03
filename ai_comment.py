@@ -3,7 +3,9 @@ def make_ai_comment(
     kairi25,
     volume_ratio,
     macd,
-    signal
+    signal,
+    cross,
+    bollinger
 ):
     """
     AIコメントを返す
@@ -18,6 +20,13 @@ def make_ai_comment(
         comments.append("MACDは買いシグナルです。")
     else:
         comments.append("MACDは売りシグナルです。")
+
+        # GC/DC
+    if cross == "GC":
+        comments.append("ゴールデンクロスが発生し、上昇トレンド入りの可能性があります。")
+
+    elif cross == "DC":
+        comments.append("デッドクロスが発生し、短期的な下落に注意が必要です。")
 
     # ==========================
     # RSI
@@ -54,5 +63,17 @@ def make_ai_comment(
     # ==========================
     if not comments:
         return "大きな変化はありません。引き続き監視しましょう。"
+    # ボリンジャーバンド
+    if bollinger == "-2S":
+        comments.append("ボリンジャーバンド-2σ付近です。売られすぎから反発する可能性があります。")
+
+    elif bollinger == "-1S":
+        comments.append("ボリンジャーバンド-1σ付近です。やや弱含みですが、反発に注目です。")
+
+    elif bollinger == "+1S":
+        comments.append("ボリンジャーバンド+1σ付近です。上昇基調ですが、過熱感に注意しましょう。")
+
+    elif bollinger == "+2S":
+        comments.append("ボリンジャーバンド+2σ付近です。買われすぎの可能性があり、利益確定売りに注意です。")
 
     return " ".join(comments)

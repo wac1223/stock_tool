@@ -103,6 +103,7 @@ def analyze_watchlist():
             volume = int(data["Volume"].iloc[-1])
             rsi = calculate_rsi(data["Close"])
             macd, signal = calculate_macd(data["Close"])
+            cross = calculate_cross(data["Close"])
             
             ma25 = round(float(data["Close"].rolling(25).mean().iloc[-1]), 2)
 
@@ -149,6 +150,7 @@ def analyze_watchlist():
                 "出来高倍率": volume_ratio,
                 "MACD": macd,
                 "Signal": signal,
+                "GC/DC": cross,
                 "強気スコア": score,
                 "ランク": rank,
                 "評価": stars,
@@ -167,6 +169,7 @@ def analyze_watchlist():
                 f" 出来高倍率:{volume_ratio}"
                 f" MACD:{macd:.2f}"
                 f" Signal:{signal:.2f}"
+                f" GC/DC:{cross}"
                 f" 強気スコア:{score}"
                 f" ランク:{rank}"
                 f" 評価:{stars}"
@@ -185,7 +188,7 @@ def analyze_watchlist():
     for i, result in enumerate(results, start=2):
 
         watch_sheet.update(
-            range_name=f"E{result['row']}:Q{result['row']}",
+            range_name=f"E{result['row']}:R{result['row']}",
             values=[[
                 result["現在値"],
                 result["前日比"],
@@ -196,6 +199,7 @@ def analyze_watchlist():
                 result["出来高倍率"],
                 result["MACD"],
                 result["Signal"],
+                result["GC/DC"],
                 result["強気スコア"],
                 result["ランク"],
                 result["評価"],

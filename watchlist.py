@@ -40,6 +40,29 @@ def calculate_macd(close_prices):
         round(float(signal.iloc[-1]), 2)
     )
 
+def calculate_cross(close_prices):
+
+    ma5 = close_prices.rolling(5).mean()
+
+    ma25 = close_prices.rolling(25).mean()
+
+    # 前日
+    prev_ma5 = ma5.iloc[-2]
+    prev_ma25 = ma25.iloc[-2]
+
+    # 今日
+    now_ma5 = ma5.iloc[-1]
+    now_ma25 = ma25.iloc[-1]
+
+    # ゴールデンクロス
+    if prev_ma5 <= prev_ma25 and now_ma5 > now_ma25:
+        return "GC"
+
+    # デッドクロス
+    elif prev_ma5 >= prev_ma25 and now_ma5 < now_ma25:
+        return "DC"
+
+    return "-"
 
 def analyze_watchlist():
 

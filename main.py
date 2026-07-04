@@ -110,14 +110,10 @@ for _, row in watchlist.iterrows():
         print("取得開始", symbol)
 
         stock = yf.Ticker(symbol)
-        data = stock.history(period="3mo")
+        data = stock.history(period="2y")
         currency = "JPY"
 
-        #currency = stock.info.get(
-        # "currency",
-        # "JPY"
-        #)
-
+       
        # print(
        # f"{symbol} currency={currency}"
        # )
@@ -517,13 +513,13 @@ for _, row in watch_df.iterrows():
         print("銘柄", symbol)
 
         stock = yf.Ticker(symbol)
-        data = stock.history(period="3mo")
+        data = stock.history(period="2y")
         print("株価取得成功", symbol)
         if data is None or len(data) < 2:
             continue
 
         current_price = float(data["Close"].iloc[-1])
-        year_data = stock.history(period="1y")
+        year_data = data
         # 75日移動平均
         if len(data) >= 75:
             ma75 = round(data["Close"].rolling(window=75).mean().iloc[-1], 2)

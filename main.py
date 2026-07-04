@@ -129,6 +129,8 @@ for _, row in watchlist.iterrows():
             continue
 
         close_prices = data["Close"].dropna()
+        # 75日移動平均
+        ma75 = data["Close"].rolling(window=75).mean().iloc[-1]
 
         # 終値が2つ未満 → 前日比が計算できない
         if len(close_prices) < 2:
@@ -169,6 +171,7 @@ for _, row in watchlist.iterrows():
             "株数": shares,
             "購入価格": round(purchase_price, 2),
             "現在価格": round(close_price, 2),
+            "75日移動平均": round(ma75, 2),
             "前日終値": round(previous_close, 2),
             "前日差額": round(change, 2),
             "前日比(%)": round(change_percent, 2),
@@ -265,7 +268,8 @@ else:
             "日時",
             "総評価額",
             "総取得額",
-            "総損益"
+            "総損益",
+            "総損益率"
         ]
     )
 
@@ -505,13 +509,15 @@ for _, row in watch_df.iterrows():
         print("銘柄", symbol)
 
         stock = yf.Ticker(symbol)
-        data = stock.history(period="5d")
+        data = stock.history(period="3mo")
         print("株価取得成功", symbol)
         if data is None or len(data) < 2:
             continue
 
         current_price = float(data["Close"].iloc[-1])
         year_data = stock.history(period="1y")
+        # 75日移動平均
+        ma75 = data["Close"].rolling(window=75).mean().iloc[-1]
 
         high_52 = year_data["High"].max()
         low_52 = year_data["Low"].min()

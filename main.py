@@ -125,7 +125,7 @@ for _, row in watchlist.iterrows():
             continue
 
         close_prices = data["Close"].dropna()
-        # 75日移動平均
+        
         # 75日移動平均
         ma75 = data["Close"].rolling(window=75).mean().iloc[-1]
 
@@ -133,6 +133,16 @@ for _, row in watchlist.iterrows():
             ma75 = None
         else:
             ma75 = round(float(ma75), 2)
+
+
+        # 200日移動平均
+        ma200 = data["Close"].rolling(window=200).mean().iloc[-1]
+
+        if pd.isna(ma200):
+            ma200 = None
+        else:
+            ma200 = round(float(ma200), 2)
+
 
         # 終値が2つ未満 → 前日比が計算できない
         if len(close_prices) < 2:
@@ -174,6 +184,7 @@ for _, row in watchlist.iterrows():
             "購入価格": round(purchase_price, 2),
             "現在価格": round(close_price, 2),
             "75日線": ma75,
+            "200日線": ma200,
             "前日終値": round(previous_close, 2),
             "前日差額": round(change, 2),
             "前日比(%)": round(change_percent, 2),
@@ -520,12 +531,14 @@ for _, row in watch_df.iterrows():
 
         current_price = float(data["Close"].iloc[-1])
         year_data = data
+        
         # 75日移動平均
         if len(data) >= 75:
             ma75 = round(data["Close"].rolling(window=75).mean().iloc[-1], 2)
         else:
             ma75 = ""
-
+            
+       
         high_52 = year_data["High"].max()
         low_52 = year_data["Low"].min()
 

@@ -200,11 +200,13 @@ result_df = pd.DataFrame(result)
 worksheet = spreadsheet.worksheet("保有状況")
 worksheet.clear()
 
+print(result_df.columns)
+print(result_df[["会社名", "75日線"]])
+
 worksheet.update(
     [result_df.columns.tolist()]
     + result_df.values.tolist()
 )
-
 print("保有状況更新完了")
 
 

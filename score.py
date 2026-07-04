@@ -4,7 +4,8 @@ def calculate_score(
     volume_ratio,
     macd,
     signal,
-    cross
+    cross,
+    bollinger
 ):
     score = 50
     reasons = []
@@ -40,6 +41,7 @@ def calculate_score(
     elif volume_ratio >= 1.5:
         score += 10
         reasons.append("出来高増加")
+
 # GC/DC
     if cross == "GC":
         score += 15
@@ -48,7 +50,24 @@ def calculate_score(
     elif cross == "DC":
         score -= 15
         reasons.append("デッドクロス")
-        
+
+# ボリンジャーバンド
+    if bollinger == "-2S":
+        score += 15
+        reasons.append("ボリンジャー-2σ")
+
+    elif bollinger == "-1S":
+        score += 5
+        reasons.append("ボリンジャー-1σ")
+
+    elif bollinger == "+1S":
+        score -= 5
+        reasons.append("ボリンジャー+1σ")
+
+    elif bollinger == "+2S":
+        score -= 15
+        reasons.append("ボリンジャー+2σ")
+
     # 0～100点
     score = max(0, min(score, 100))
     # ランク判定

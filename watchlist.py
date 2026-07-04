@@ -157,7 +157,8 @@ def analyze_watchlist():
                 volume_ratio,
                 macd,
                 signal,
-                cross
+                cross,
+                bollinger
             )
             ai_comment = make_ai_comment(
                 rsi,
@@ -165,7 +166,8 @@ def analyze_watchlist():
                 volume_ratio,
                 macd,
                 signal,
-                cross
+                cross,
+                bollinger
             )
             
 
@@ -183,6 +185,7 @@ def analyze_watchlist():
                 "MACD": macd,
                 "Signal": signal,
                 "GC/DC": cross,
+                "Bollinger": bollinger,
                 "強気スコア": score,
                 "ランク": rank,
                 "評価": stars,
@@ -202,6 +205,7 @@ def analyze_watchlist():
                 f" MACD:{macd:.2f}"
                 f" Signal:{signal:.2f}"
                 f" GC/DC:{cross}"
+                f" Bollinger:{bollinger}"
                 f" 強気スコア:{score}"
                 f" ランク:{rank}"
                 f" 評価:{stars}"
@@ -220,7 +224,7 @@ def analyze_watchlist():
     for i, result in enumerate(results, start=2):
 
         watch_sheet.update(
-            range_name=f"E{result['row']}:R{result['row']}",
+            range_name=f"E{result['row']}:S{result['row']}",
             values=[[
                 result["現在値"],
                 result["前日比"],
@@ -232,6 +236,7 @@ def analyze_watchlist():
                 result["MACD"],
                 result["Signal"],
                 result["GC/DC"],
+                result["Bollinger"],
                 result["強気スコア"],
                 result["ランク"],
                 result["評価"],

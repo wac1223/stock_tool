@@ -5,7 +5,8 @@ def calculate_score(
     macd,
     signal,
     cross,
-    bollinger
+    bollinger,
+    trend
 ):
     score = 50
     reasons = []
@@ -103,4 +104,22 @@ def calculate_score(
     elif macd < signal:
         score -= 10
         reasons.append("MACD売りシグナル")
+        
+
+    # トレンド
+    if trend == "🟢 強い上昇":
+        score += 20
+        reasons.append("長期上昇")
+
+    elif trend == "🟢 上昇":
+        score += 10
+        reasons.append("上昇トレンド")
+
+    elif trend == "🟡 反発中":
+        score += 5
+        reasons.append("反発")
+
+    else:
+        score -= 10
+        reasons.append("下降トレンド")    
     return score, rank, stars, reasons

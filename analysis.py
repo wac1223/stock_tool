@@ -1,210 +1,185 @@
-print("=== START ===")
-# analysis.py
-import yfinance as yf
 import pandas as pd
-import numpy as np
-from typing import Dict, Any, Optional
+import yfinance as yf
 
-# --- 設定（必要に応じて編集） ---
-# Google Sheets から補助データを取る場合は main 側で取得して渡すのが簡単
-# 例: sheet_info = {"7203.T": {"TAM": 1e12, "lockup_days": 90}}
-# analysis.py は sheet_info を引数で受け取る設計にしている
 
-# --- ユーティリティ関数 ---
-def safe_get_financials(ticker: yf.Ticker) -> Optional[pd.DataFrame]:
-    try:
-        fin = ticker.financials
-        if fin is None or fin.empty:
-            return None
-        return fin
-    except Exception:
+def calculate_rsi(close_prices, period=14):
+
+    delta = close_prices.diff()
+
+    gain = delta.where(delta > 0, 0)
+    loss = -delta.where(delta < 0, 0)
+
+    avg_gain = gain.rolling(window=period).mean()
+    avg_loss = loss.rolling(window=period).mean()
+
+    rs = avg_gain / avg_loss
+
+    rsi = 100 - (100 / (1 + rs))
+
+    return round(float(rsi.iloc[-1]), 1)
+
+
+###MACD計算
+def calculate_macd(close_prices):
+
+    ema12 = close_prices.ewm(span=12, adjust=False).mean()
+
+    ema26 = close_prices.ewm(span=26, adjust=False).mean()
+
+    macd = ema12 - ema26
+
+    signal = macd.ewm(span=9, adjust=False).mean()
+
+    return (
+        round(float(macd.iloc[-1]), 2),
+        round(float(signal.iloc[-1]), 2)
+    )
+
+def calculate_cross(close_prices):
+
+    ma5 = close_prices.rolling(5).mean()
+
+    ma25 = close_prices.rolling(25).mean()
+
+    # 前日
+    prev_ma5 = ma5.iloc[-2]
+    prev_ma25 = ma25.iloc[-2]
+
+    # 今日
+    now_ma5 = ma5.iloc[-1]
+    now_ma25 = ma25.iloc[-1]
+
+    # ゴールデンクロス
+    if prev_ma5 <= prev_ma25 and now_ma5 > now_ma25:
+        return "GC"
+
+    # デッドクロス
+    elif prev_ma5 >= prev_ma25 and now_ma5 < now_ma25:
+        return "DC"
+
+    return "-"
+
+def calculate_bollinger(close_prices):
+
+    ma25 = close_prices.rolling(25).mean()
+
+    std = close_prices.rolling(25).std()
+
+    upper2 = ma25 + std * 2
+    lower2 = ma25 - std * 2
+
+    price = close_prices.iloc[-1]
+
+    if price >= upper2.iloc[-1]:
+        return "+25"
+
+    elif price <= lower2.iloc[-1]:
+        return "-25"
+
+    elif price >= ma25.iloc[-1]:
+        return "+15"
+
+    else:
+        return "-15"
+    
+def calculate_kairi25(close_prices):
+
+    close_price = close_prices.iloc[-1]
+    ma25 = close_prices.rolling(25).mean().iloc[-1]
+
+    return round((close_price - ma25) / ma25 * 100, 2)
+
+
+def calculate_volume_ratio(data):
+
+    volume = data["Volume"].iloc[-1]
+    volume5 = data["Volume"].rolling(5).mean().iloc[-1]
+
+    return round(volume / volume5, 2)
+
+
+def analyze_stock(symbol):
+    stock = yf.Ticker(symbol)
+    data = stock.history(period="2y")
+
+    if data is None or data.empty:
+        print(f"[SKIP] {symbol} データなし")
         return None
 
-def revenue_growth_rate(fin: pd.DataFrame) -> Optional[float]:
-    # fin の行ラベルは英語（例: 'Total Revenue'）の場合があるため複数候補で探す
-    candidates = ["Total Revenue", "Revenue", "Net Sales", "売上高"]
-    for key in candidates:
-        if key in fin.index:
-            rev = fin.loc[key].astype(float)
-            if len(rev) >= 2:
-                # 最新年と前年の比較（%）
-                try:
-                    latest = rev.iloc[0]
-                    prev = rev.iloc[1]
-                    if prev == 0:
-                        return None
-                    return (latest - prev) / abs(prev) * 100.0
-                except Exception:
-                    return None
-    return None
+    close_prices = data["Close"].dropna()
 
-def gross_margin(fin: pd.DataFrame) -> Optional[float]:
-    # 粗利率 = Gross Profit / Revenue
-    gp_keys = ["Gross Profit", "GrossIncome", "売上総利益"]
-    rev_keys = ["Total Revenue", "Revenue", "Net Sales", "売上高"]
-    gp = None
-    rev = None
-    for k in gp_keys:
-        if k in fin.index:
-            gp = fin.loc[k].astype(float)
-            break
-    for k in rev_keys:
-        if k in fin.index:
-            rev = fin.loc[k].astype(float)
-            break
-    if gp is None or rev is None:
-        return None
-    try:
-        return float(gp.iloc[0] / rev.iloc[0] * 100.0)
-    except Exception:
+    # 終値が2つ未満なら終了
+    if len(close_prices) < 2:
         return None
 
-def operating_margin_trend(fin: pd.DataFrame) -> Optional[float]:
-    # 営業利益の増減（最新 - 前年）
-    op_keys = ["Operating Income", "OperatingProfit", "営業利益"]
-    rev_keys = ["Total Revenue", "Revenue", "Net Sales", "売上高"]
-    op = None
-    rev = None
-    for k in op_keys:
-        if k in fin.index:
-            op = fin.loc[k].astype(float)
-            break
-    for k in rev_keys:
-        if k in fin.index:
-            rev = fin.loc[k].astype(float)
-            break
-    if op is None or rev is None:
-        return None
-    try:
-        latest_op = op.iloc[0]
-        prev_op = op.iloc[1] if len(op) >= 2 else None
-        if prev_op is None:
-            return None
-        return float(latest_op - prev_op)
-    except Exception:
-        return None
+    close_price = float(close_prices.iloc[-1])
+    previous_close = float(close_prices.iloc[-2])
 
-def has_subscription_revenue(ticker: yf.Ticker) -> Optional[bool]:
-    # 自動判定は難しいため、決算の "business summary" や "info" をヒントにする
-    try:
-        info = ticker.info
-        desc = ""
-        for k in ["longBusinessSummary", "businessSummary", "description"]:
-            if k in info and info[k]:
-                desc = info[k].lower()
-                break
-        if not desc:
-            return None
-        keywords = ["subscription", "saas", "recurring", "maintenance", "保守", "サブスク"]
-        return any(kw in desc for kw in keywords)
-    except Exception:
-        return None
+    change = close_price - previous_close
+    change_percent = change / previous_close * 100
 
-# --- スコアリングロジック ---
-def score_from_metrics(metrics: Dict[str, Any]) -> Dict[str, Any]:
-    # シンプルな重み付けスコア（必要に応じて調整）
-    score = 0.0
-    reasons = []
+    volume = int(data["Volume"].iloc[-1])
 
-    # 売上成長率
-    rg = metrics.get("revenue_growth")
-    if rg is not None:
-        if rg >= 30:
-            score += 30; reasons.append("高い売上成長")
-        elif rg >= 10:
-            score += 15; reasons.append("適度な売上成長")
-        else:
-            score += 0; reasons.append("売上成長弱め")
+    rsi = calculate_rsi(close_prices)
+   
+   
+    kairi25 = calculate_kairi25(close_prices)
+    volume_ratio = calculate_volume_ratio(data)
 
-    # 粗利率
-    gm = metrics.get("gross_margin")
-    if gm is not None:
-        if gm >= 60:
-            score += 25; reasons.append("高粗利")
-        elif gm >= 40:
-            score += 15; reasons.append("良好な粗利")
-        else:
-            score += 5; reasons.append("粗利低め")
+    macd, signal = calculate_macd(close_prices)
+    cross = calculate_cross(close_prices)
+    bollinger = calculate_bollinger(close_prices)
 
-    # 営業利益トレンド
-    op_trend = metrics.get("op_margin_trend")
-    if op_trend is not None:
-        if op_trend > 0:
-            score += 15; reasons.append("営業利益改善")
-        else:
-            score += 0; reasons.append("営業利益改善なし")
+    # 75日移動平均
+    ma75 = close_prices.rolling(window=75).mean().iloc[-1]
+    ma75 = round(float(ma75), 2) if not pd.isna(ma75) else None
 
-    # ストック収益
-    sub = metrics.get("has_subscription")
-    if sub is True:
-        score += 15; reasons.append("ストック収益あり")
-    elif sub is False:
-        score += 0; reasons.append("ストック収益なし")
+    # 200日移動平均
+    ma200 = close_prices.rolling(window=200).mean().iloc[-1]
+    ma200 = round(float(ma200), 2) if not pd.isna(ma200) else None
 
-    # TAM（手動入力がある場合）
-    tam = metrics.get("TAM")
-    if tam is not None:
-        if tam >= 1e12:
-            score += 10; reasons.append("巨大市場")
-        elif tam >= 1e11:
-            score += 5; reasons.append("十分な市場")
+    # トレンド判定
+    if ma75 is None or ma200 is None:
+        trend = "判定不可"
+    elif close_prices.iloc[-1] > ma75 > ma200:
+        trend = "🟢 強い上昇"
+    elif close_prices.iloc[-1] > ma75:
+        trend = "🟢 上昇"
+    elif close_prices.iloc[-1] > ma200:
+        trend = "🟡 反発中"
+    else:
+        trend = "🔴 下降"
 
-    # ロックアップ（短いほどリスク）
-    lockup = metrics.get("lockup_days")
-    if lockup is not None:
-        if lockup <= 90:
-            score -= 10; reasons.append("短いロックアップ（売り圧リスク）")
-        elif lockup <= 180:
-            score -= 5; reasons.append("中程度のロックアップ")
-
-    # 正規化
-    final_score = max(0, min(100, score))
-    return {"score": final_score, "raw_score": score, "reasons": reasons}
-
-# --- メイン分析関数 ---
-def analyze_stock(symbol: str, sheet_info: Dict[str, Dict[str, Any]] = None) -> Dict[str, Any]:
-    """
-    symbol: yfinance で使えるティッカー（例 "7203.T"）
-    sheet_info: 補助データ辞書。例: {"7203.T": {"TAM": 1e12, "lockup_days": 90}}
-    戻り値: 指標とスコアの辞書
-    """
-    ticker = yf.Ticker(symbol)
-    fin = safe_get_financials(ticker)
-
-    metrics = {
+    return {
         "symbol": symbol,
-        "revenue_growth": None,
-        "gross_margin": None,
-        "op_margin_trend": None,
-        "has_subscription": None,
-        "TAM": None,
-        "lockup_days": None
+        "現在価格": round(close_price, 2),
+        "前日終値": round(previous_close, 2),
+        "前日差額": round(change, 2),
+        "前日比(%)": round(change_percent, 2),
+        "出来高": volume,
+
+        "RSI": rsi,
+        "25日乖離率": kairi25,
+        "出来高倍率": volume_ratio,
+
+        "MACD": macd,
+        "Signal": signal,
+        "GC/DC": cross,
+        "ボリンジャー": bollinger,
+
+        "75日線": ma75,
+        "200日線": ma200,
+        "トレンド": trend,
     }
 
-    if fin is not None:
-        metrics["revenue_growth"] = revenue_growth_rate(fin)
-        metrics["gross_margin"] = gross_margin(fin)
-        metrics["op_margin_trend"] = operating_margin_trend(fin)
 
-    metrics["has_subscription"] = has_subscription_revenue(ticker)
 
-    # sheet_info から補助データを取得
-    if sheet_info and symbol in sheet_info:
-        info = sheet_info[symbol]
-        metrics["TAM"] = info.get("TAM")
-        metrics["lockup_days"] = info.get("lockup_days")
 
-    # スコアリング
-    score_result = score_from_metrics(metrics)
-    metrics.update(score_result)
-    return metrics
 
-# --- テスト用実行 ---
-if __name__ == "__main__":
-    # 例: python analysis.py 7203.T
-    import sys
-    if len(sys.argv) >= 2:
-        sym = sys.argv[1]
-        print(analyze_stock(sym))
-    else:
-        print("Usage: python analysis.py <TICKER>")
+
+
+
+
+
+
+

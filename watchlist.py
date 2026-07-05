@@ -131,7 +131,7 @@ def analyze_watchlist():
     for i, result in enumerate(results, start=2):
 
         watch_sheet.update(
-            range_name=f"E{result['row']}:U{result['row']}",
+            range_name=f"E{result['row']}:V{result['row']}",
             values=[[
                 result["現在値"],
                 result["前日比"],

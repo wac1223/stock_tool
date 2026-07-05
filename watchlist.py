@@ -1,92 +1,13 @@
+import time
 import pandas as pd
 import yfinance as yf
-import time
 
+from analysis import analyze_stock
 from sheets import spreadsheet
 from ai_comment import make_ai_comment
 from score import calculate_score
 
 
-###RSI関数を追加
-def calculate_rsi(close_prices, period=14):
-
-    delta = close_prices.diff()
-
-    gain = delta.where(delta > 0, 0)
-    loss = -delta.where(delta < 0, 0)
-
-    avg_gain = gain.rolling(window=period).mean()
-    avg_loss = loss.rolling(window=period).mean()
-
-    rs = avg_gain / avg_loss
-
-    rsi = 100 - (100 / (1 + rs))
-
-    return round(float(rsi.iloc[-1]), 1)
-
-
-###MACD計算
-def calculate_macd(close_prices):
-
-    ema12 = close_prices.ewm(span=12, adjust=False).mean()
-
-    ema26 = close_prices.ewm(span=26, adjust=False).mean()
-
-    macd = ema12 - ema26
-
-    signal = macd.ewm(span=9, adjust=False).mean()
-
-    return (
-        round(float(macd.iloc[-1]), 2),
-        round(float(signal.iloc[-1]), 2)
-    )
-
-def calculate_cross(close_prices):
-
-    ma5 = close_prices.rolling(5).mean()
-
-    ma25 = close_prices.rolling(25).mean()
-
-    # 前日
-    prev_ma5 = ma5.iloc[-2]
-    prev_ma25 = ma25.iloc[-2]
-
-    # 今日
-    now_ma5 = ma5.iloc[-1]
-    now_ma25 = ma25.iloc[-1]
-
-    # ゴールデンクロス
-    if prev_ma5 <= prev_ma25 and now_ma5 > now_ma25:
-        return "GC"
-
-    # デッドクロス
-    elif prev_ma5 >= prev_ma25 and now_ma5 < now_ma25:
-        return "DC"
-
-    return "-"
-
-def calculate_bollinger(close_prices):
-
-    ma25 = close_prices.rolling(25).mean()
-
-    std = close_prices.rolling(25).std()
-
-    upper2 = ma25 + std * 2
-    lower2 = ma25 - std * 2
-
-    price = close_prices.iloc[-1]
-
-    if price >= upper2.iloc[-1]:
-        return "+25"
-
-    elif price <= lower2.iloc[-1]:
-        return "-25"
-
-    elif price >= ma25.iloc[-1]:
-        return "+15"
-
-    else:
-        return "-15"
 
 def analyze_watchlist():
 
@@ -106,51 +27,29 @@ def analyze_watchlist():
 
         try:
 
-            stock = yf.Ticker(symbol)
+            analysis = analyze_stock(symbol)
 
-            for _ in range(3):
-
-                data = stock.history(period="3mo")
-
-                if not data.empty:
-                    break
-
-            if data.empty:
-                print(f"{symbol} データ取得失敗（3回試行）")
+            if analysis is None:
                 continue
-            # print(symbol)
-            # print(data.tail())
 
-            close = float(data["Close"].iloc[-1])
+            close = analysis["現在価格"]
+            previous = analysis["前日終値"]
+            change = analysis["前日差額"]
+            change_percent = analysis["前日比(%)"]
+            volume = analysis["出来高"]
 
-            previous = float(data["Close"].iloc[-2])
+            rsi = analysis["RSI"]
+            kairi25 = analysis["25日乖離率"]
+            volume_ratio = analysis["出来高倍率"]
 
-            change = close - previous
+            macd = analysis["MACD"]
+            signal = analysis["Signal"]
+            cross = analysis["GC/DC"]
+            bollinger = analysis["ボリンジャー"]
 
-            change_percent = change / previous * 100
+            trend = analysis["トレンド"]
 
-            volume = int(data["Volume"].iloc[-1])
-            rsi = calculate_rsi(data["Close"])
-            macd, signal = calculate_macd(data["Close"])
-            cross = calculate_cross(data["Close"])
-            bollinger = calculate_bollinger(data["Close"])
             
-            ma25 = round(float(data["Close"].rolling(25).mean().iloc[-1]), 2)
-
-            kairi25 = round(
-                (close - ma25) / ma25 * 100,
-                2
-            )
-
-            avg_volume = int(
-                data["Volume"].rolling(25).mean().iloc[-1]
-            )
-
-            volume_ratio = round(
-                volume / avg_volume,
-                2
-            )
-
             score, rank, stars, reasons = calculate_score(
                 rsi,
                 kairi25,
@@ -158,7 +57,8 @@ def analyze_watchlist():
                 macd,
                 signal,
                 cross,
-                bollinger
+                bollinger,
+                trend
             )
             ai_comment = make_ai_comment(
                 rsi,
@@ -167,7 +67,8 @@ def analyze_watchlist():
                 macd,
                 signal,
                 cross,
-                bollinger
+                bollinger,
+                trend
             )
             
 
@@ -186,6 +87,9 @@ def analyze_watchlist():
                 "Signal": signal,
                 "GC/DC": cross,
                 "Bollinger": bollinger,
+                "75日線": analysis["75日線"],
+                "200日線": analysis["200日線"],
+                "トレンド": trend,
                 "強気スコア": score,
                 "ランク": rank,
                 "評価": stars,
@@ -206,6 +110,9 @@ def analyze_watchlist():
                 f" Signal:{signal:.2f}"
                 f" GC/DC:{cross}"
                 f" Bollinger:{bollinger}"
+                f" 75日線:{analysis['75日線']}"
+                f" 200日線:{analysis['200日線']}"
+                f" トレンド:{trend}"
                 f" 強気スコア:{score}"
                 f" ランク:{rank}"
                 f" 評価:{stars}"
@@ -224,7 +131,7 @@ def analyze_watchlist():
     for i, result in enumerate(results, start=2):
 
         watch_sheet.update(
-            range_name=f"E{result['row']}:S{result['row']}",
+            range_name=f"E{result['row']}:U{result['row']}",
             values=[[
                 result["現在値"],
                 result["前日比"],
@@ -237,6 +144,9 @@ def analyze_watchlist():
                 result["Signal"],
                 result["GC/DC"],
                 result["Bollinger"],
+                result["75日線"],
+                result["200日線"],
+                result["トレンド"],
                 result["強気スコア"],
                 result["ランク"],
                 result["評価"],

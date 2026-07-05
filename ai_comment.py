@@ -5,13 +5,19 @@ def make_ai_comment(
     macd,
     signal,
     cross,
-    bollinger
+    bollinger,
+    trend
 ):
     """
     AIコメントを返す
     """
 
     comments = []
+
+    comments.append("【総合評価】")
+    comments.append("")
+    comments.append(trend)
+    comments.append("")
 
     # ==========================
     # MACD
@@ -63,6 +69,8 @@ def make_ai_comment(
     # ==========================
     if not comments:
         return "大きな変化はありません。引き続き監視しましょう。"
+    
+    
     # ボリンジャーバンド
     if bollinger == "-2S":
         comments.append("ボリンジャーバンド-2σ付近です。売られすぎから反発する可能性があります。")
@@ -76,4 +84,4 @@ def make_ai_comment(
     elif bollinger == "+2S":
         comments.append("ボリンジャーバンド+2σ付近です。買われすぎの可能性があり、利益確定売りに注意です。")
 
-    return " ".join(comments)
+    return "\n".join(comments)

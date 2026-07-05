@@ -11,6 +11,7 @@ from datetime import datetime
 from google.oauth2.service_account import Credentials
 from watchlist import analyze_watchlist
 from sheets import spreadsheet
+from analysis import analyze_stock
 
 
 now = datetime.now(ZoneInfo("Asia/Tokyo"))
@@ -22,13 +23,6 @@ USER_ID = os.environ["USER_ID"]
 #ローカル環境
 #LINE_TOKEN = os.getenv("LINE_TOKEN", "")
 #USER_ID = os.getenv("USER_ID", "")
-
-usd_jpy = yf.Ticker("JPY=X")
-usd_rate = float(
-    usd_jpy.history(period="1d")["Close"].iloc[-1]
-)
-
-print(f"USDJPY = {usd_rate}")
 
 
 # =========================
@@ -107,76 +101,31 @@ for _, row in watchlist.iterrows():
     try:
         symbol = row["銘柄"]
         purchase_price = float(row["購入価格"])
-        print("取得開始", symbol)
-
-        stock = yf.Ticker(symbol)
-        data = stock.history(period="2y")
-        currency = "JPY"
-
-       
-       # print(
-       # f"{symbol} currency={currency}"
-       # )
-
-
-# データが無い場合
-        if data is None or data.empty:
-            print(f"[SKIP] {symbol} データなし")
-            continue
-
-        close_prices = data["Close"].dropna()
-        
-        # 75日移動平均
-        ma75 = data["Close"].rolling(window=75).mean().iloc[-1]
-
-        if pd.isna(ma75):
-            ma75 = None
-        else:
-            ma75 = round(float(ma75), 2)
-
-
-        # 200日移動平均
-        ma200 = data["Close"].rolling(window=200).mean().iloc[-1]
-
-        if pd.isna(ma200):
-            ma200 = None
-        else:
-            ma200 = round(float(ma200), 2)
-
-
-        # 終値が2つ未満 → 前日比が計算できない
-        if len(close_prices) < 2:
-            print(f"[SKIP] {symbol} 有効な株価不足")
-            continue
-
-        close_price = float(close_prices.iloc[-1])
-        previous_close = float(close_prices.iloc[-2])
-
         shares = float(row["株数"])
+        company_name = row["会社名"]
 
-        change = close_price - previous_close
-        change_percent = (
-            change / previous_close * 100
-        )
+        analysis = analyze_stock(symbol)
+        if analysis is None:
+            continue
+
+        close_price = analysis["現在価格"]
+        previous_close = analysis["前日終値"]
+        change = analysis["前日差額"]
+        change_percent = analysis["前日比(%)"]
+
+        ma75 = analysis["75日線"]
+        ma200 = analysis["200日線"]
+        trend = analysis["トレンド"]
 
         market_value = close_price * shares
         cost_value = purchase_price * shares
-
-       # if currency == "USD":
-       #     market_value *= usd_rate
-       #     cost_value *= usd_rate
-
         profit = market_value - cost_value
 
         if cost_value > 0:
-            profit_percent = (
-            profit / cost_value * 100
-            )
+            profit_percent = profit / cost_value * 100
         else:
             profit_percent = 0
-
-        company_name = row["会社名"]
-
+             
         result.append({
             "銘柄": symbol,
             "会社名": company_name,
@@ -185,6 +134,7 @@ for _, row in watchlist.iterrows():
             "現在価格": round(close_price, 2),
             "75日線": ma75,
             "200日線": ma200,
+            "トレンド": trend,
             "前日終値": round(previous_close, 2),
             "前日差額": round(change, 2),
             "前日比(%)": round(change_percent, 2),

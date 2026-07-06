@@ -2,6 +2,7 @@ import pandas as pd
 import yfinance as yf
 
 
+
 def calculate_rsi(close_prices, period=14):
 
     delta = close_prices.diff()
@@ -173,19 +174,3 @@ def analyze_stock(symbol):
         "トレンド": trend,
     }
 
-def get_signal(score):
-
-    if score >= 85:
-        return "🟢 強い買い"
-
-    elif score >= 70:
-        return "🟡 買い"
-
-    elif score >= 50:
-        return "⚪ 様子見"
-
-    elif score >= 35:
-        return "🟠 利益確定検討"
-
-    else:
-        return "🔴 売り注意"

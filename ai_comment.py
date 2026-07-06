@@ -13,9 +13,6 @@ def make_ai_comment(
     """
 
     comments = []
-
-    comments.append("【総合評価】")
-    comments.append("")
     comments.append(trend)
     comments.append("")
 

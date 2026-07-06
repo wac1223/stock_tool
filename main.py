@@ -12,8 +12,7 @@ from google.oauth2.service_account import Credentials
 from watchlist import analyze_watchlist
 from sheets import spreadsheet
 from analysis import analyze_stock
-from score import calculate_score
-from signal import get_signal
+from score import calculate_score, get_signal
 
 
 now = datetime.now(ZoneInfo("Asia/Tokyo"))

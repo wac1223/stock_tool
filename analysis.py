@@ -150,6 +150,7 @@ def analyze_stock(symbol):
     else:
         trend = "🔴 下降"
 
+    
     return {
         "symbol": symbol,
         "現在価格": round(close_price, 2),
@@ -171,15 +172,3 @@ def analyze_stock(symbol):
         "200日線": ma200,
         "トレンド": trend,
     }
-
-
-
-
-
-
-
-
-
-
-
-

@@ -11,7 +11,11 @@ from datetime import datetime
 from google.oauth2.service_account import Credentials
 from watchlist import analyze_watchlist
 from sheets import spreadsheet
-from analysis import analyze_stock
+from analysis import (
+    analyze_stock,
+    calculate_score,
+    get_signal,
+)
 
 
 now = datetime.now(ZoneInfo("Asia/Tokyo"))
@@ -107,6 +111,18 @@ for _, row in watchlist.iterrows():
         analysis = analyze_stock(symbol)
         if analysis is None:
             continue
+        score, rank, stars, reasons = calculate_score(
+            analysis["RSI"],
+            analysis["25日乖離率"],
+            analysis["出来高倍率"],
+            analysis["MACD"],
+            analysis["Signal"],
+            analysis["GC/DC"],
+            analysis["ボリンジャー"],
+            analysis["トレンド"]
+        )
+
+        signal = get_signal(score)
 
         close_price = analysis["現在価格"]
         previous_close = analysis["前日終値"]
@@ -132,9 +148,17 @@ for _, row in watchlist.iterrows():
             "株数": shares,
             "購入価格": round(purchase_price, 2),
             "現在価格": round(close_price, 2),
+
             "75日線": ma75,
             "200日線": ma200,
             "トレンド": trend,
+
+            "売買シグナル": signal,
+            "スコア": score,
+            "ランク": rank,
+            "星": stars,
+            "判定理由": "、".join(reasons),
+
             "前日終値": round(previous_close, 2),
             "前日差額": round(change, 2),
             "前日比(%)": round(change_percent, 2),
@@ -621,12 +645,13 @@ try:
     for i, (_, row) in enumerate(top3.iterrows(), start=1):
 
         message += (
-        f"🟢 {i}位 {row['会社名']}\n"
-        f"現在価格: {row['現在価格']}\n"
-        f"前日比: {row['前日差額']} "
-        f"損益: {row['損益']:,.0f}円\n"
-        f"損益率: {row['損益率(%)']}%\n\n"
-    )
+            f"🟢 {i}位 {row['会社名']}\n"
+            f"現在価格: {row['現在価格']}\n"
+            f"前日比: {row['前日差額']}\n"
+            f"損益: {row['損益']:,.0f}円\n"
+            f"損益率: {row['損益率(%)']}%\n"
+            f"シグナル: {row['売買シグナル']}\n\n"
+        )
 
 # =====================
 # 下位3銘柄
@@ -648,6 +673,7 @@ try:
         f"前日比: {row['前日差額']} "
         f"損益: {row['損益']:,.0f}円\n"
         f"損益率: {row['損益率(%)']}%\n\n"
+        f"シグナル: {row['売買シグナル']}\n\n"
     )
     
     

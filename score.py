@@ -69,21 +69,6 @@ def calculate_score(
         score -= 15
         reasons.append("ボリンジャー+2σ")
 
-    # 0～100点
-    score = max(0, min(score, 100))
-    # ランク判定
-    if score >= 90:
-        rank = "S"
-    elif score >= 80:
-        rank = "A"
-    elif score >= 65:
-        rank = "B"
-    elif score >= 50:
-        rank = "C"
-    elif score >= 30:
-        rank = "D"
-    else:
-        rank = "E"
 
     # 星の数を判定
     if score >= 90:
@@ -123,5 +108,38 @@ def calculate_score(
         score -= 10
         reasons.append("下降トレンド")    
 
+    # 0～100点
+    score = max(0, min(score, 100))
+    # ランク判定
+    if score >= 90:
+        rank = "S"
+    elif score >= 80:
+        rank = "A"
+    elif score >= 65:
+        rank = "B"
+    elif score >= 50:
+        rank = "C"
+    elif score >= 30:
+        rank = "D"
+    else:
+        rank = "E"
+
         
     return score, rank, stars, reasons
+
+def get_signal(score):
+
+    if score >= 85:
+        return "🟢 強い買い"
+
+    elif score >= 70:
+        return "🟡 買い"
+
+    elif score >= 50:
+        return "⚪ 様子見"
+
+    elif score >= 35:
+        return "🟠 利益確定検討"
+
+    else:
+        return "🔴 売り注意"

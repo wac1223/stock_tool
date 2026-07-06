@@ -13,9 +13,8 @@ from watchlist import analyze_watchlist
 from sheets import spreadsheet
 from analysis import analyze_stock
 from score import calculate_score
-#from signal import get_signal
+from signal import get_signal
 
-from score import calculate_score
 
 now = datetime.now(ZoneInfo("Asia/Tokyo"))
 

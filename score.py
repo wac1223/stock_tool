@@ -122,4 +122,6 @@ def calculate_score(
     else:
         score -= 10
         reasons.append("下降トレンド")    
+
+        
     return score, rank, stars, reasons

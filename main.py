@@ -11,8 +11,12 @@ from datetime import datetime
 from google.oauth2.service_account import Credentials
 from watchlist import analyze_watchlist
 from sheets import spreadsheet
-from analysis import (analyze_stock,calculate_score,get_signal)
+from analysis import (
+    analyze_stock,
+    get_signal
+)
 
+from score import calculate_score
 
 now = datetime.now(ZoneInfo("Asia/Tokyo"))
 
@@ -107,6 +111,7 @@ for _, row in watchlist.iterrows():
         analysis = analyze_stock(symbol)
         if analysis is None:
             continue
+
         score, rank, stars, reasons = calculate_score(
             analysis["RSI"],
             analysis["25日乖離率"],

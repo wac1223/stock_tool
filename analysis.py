@@ -172,3 +172,20 @@ def analyze_stock(symbol):
         "200日線": ma200,
         "トレンド": trend,
     }
+
+def get_signal(score):
+
+    if score >= 85:
+        return "🟢 強い買い"
+
+    elif score >= 70:
+        return "🟡 買い"
+
+    elif score >= 50:
+        return "⚪ 様子見"
+
+    elif score >= 35:
+        return "🟠 利益確定検討"
+
+    else:
+        return "🔴 売り注意"

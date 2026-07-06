@@ -141,7 +141,7 @@ for _, row in watchlist.iterrows():
             "評価額": round(market_value, 0),
             "取得額": round(cost_value, 0),
             "損益": round(profit, 0),
-            "損益率(%)": round(profit_percent, 2)
+            "損益率(%)": round(profit_percent, 2),
         })
 
     except Exception as e:

@@ -13,7 +13,7 @@ from watchlist import analyze_watchlist
 from sheets import spreadsheet
 from analysis import analyze_stock
 from score import calculate_score, get_signal
-
+from ai_comment import make_ai_comment
 
 now = datetime.now(ZoneInfo("Asia/Tokyo"))
 
@@ -107,7 +107,7 @@ for _, row in watchlist.iterrows():
 
         analysis = analyze_stock(symbol)
 
-        
+        comment = make_ai_comment(analysis)
         if analysis is None:
             continue
         rsi = analysis["RSI"]
@@ -119,7 +119,7 @@ for _, row in watchlist.iterrows():
 
         bollinger = analysis["ボリンジャー"]
 
-        
+
         score, rank, stars, reasons = calculate_score(
             analysis["RSI"],
             analysis["25日乖離率"],
@@ -129,6 +129,17 @@ for _, row in watchlist.iterrows():
             analysis["GC/DC"],
             analysis["ボリンジャー"],
             analysis["トレンド"]
+        )
+
+        comment = make_ai_comment(
+            rsi,
+            kairi25,
+            volume_ratio,
+            macd,
+            signal,
+            cross,
+            bollinger,
+            trend
         )
 
         signal = get_signal(score)
@@ -173,6 +184,7 @@ for _, row in watchlist.iterrows():
             "スコア": score,
             "ランク": rank,
             "星": stars,
+            "AIコメント": comment,
             "判定理由": "、".join(reasons),
 
             "前日終値": round(previous_close, 2),

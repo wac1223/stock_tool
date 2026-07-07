@@ -106,9 +106,20 @@ for _, row in watchlist.iterrows():
         company_name = row["会社名"]
 
         analysis = analyze_stock(symbol)
+
+        
         if analysis is None:
             continue
+        rsi = analysis["RSI"]
+        kairi25 = analysis["25日乖離率"]
+        volume_ratio = analysis["出来高倍率"]
+        macd = analysis["MACD"]
+        signal = analysis["Signal"]
+        cross = analysis["GC/DC"]
 
+        bollinger = analysis["ボリンジャー"]
+
+        
         score, rank, stars, reasons = calculate_score(
             analysis["RSI"],
             analysis["25日乖離率"],
@@ -146,6 +157,13 @@ for _, row in watchlist.iterrows():
             "株数": shares,
             "購入価格": round(purchase_price, 2),
             "現在価格": round(close_price, 2),
+            "RSI": rsi,
+            "25日乖離率": kairi25,
+            "出来高倍率": volume_ratio,
+            "MACD": macd,
+            "Signal": signal,
+            "GC/DC": cross,
+            "ボリンジャー": bollinger,
 
             "75日線": ma75,
             "200日線": ma200,

@@ -107,42 +107,18 @@ for _, row in watchlist.iterrows():
 
         analysis = analyze_stock(symbol)
 
-        comment = make_ai_comment(analysis)
         if analysis is None:
             continue
+
+
+        # データ取得
         rsi = analysis["RSI"]
         kairi25 = analysis["25日乖離率"]
         volume_ratio = analysis["出来高倍率"]
         macd = analysis["MACD"]
-        signal = analysis["Signal"]
+        macd_signal = analysis["Signal"]
         cross = analysis["GC/DC"]
-
         bollinger = analysis["ボリンジャー"]
-
-
-        score, rank, stars, reasons = calculate_score(
-            analysis["RSI"],
-            analysis["25日乖離率"],
-            analysis["出来高倍率"],
-            analysis["MACD"],
-            analysis["Signal"],
-            analysis["GC/DC"],
-            analysis["ボリンジャー"],
-            analysis["トレンド"]
-        )
-
-        comment = make_ai_comment(
-            rsi,
-            kairi25,
-            volume_ratio,
-            macd,
-            signal,
-            cross,
-            bollinger,
-            trend
-        )
-
-        signal = get_signal(score)
 
         close_price = analysis["現在価格"]
         previous_close = analysis["前日終値"]
@@ -152,6 +128,66 @@ for _, row in watchlist.iterrows():
         ma75 = analysis["75日線"]
         ma200 = analysis["200日線"]
         trend = analysis["トレンド"]
+
+        # 判定
+        score, rank, stars, reasons = calculate_score(
+            rsi,
+            kairi25,
+            volume_ratio,
+            macd,
+            macd_signal,
+            cross,
+            bollinger,
+            trend
+        )
+
+        comment = make_ai_comment(
+            rsi,
+            kairi25,
+            volume_ratio,
+            macd,
+            macd_signal,
+            cross,
+            bollinger,
+            trend
+        )
+
+        signal_text = get_signal(score)
+
+#signal_text = get_signal(score)
+#        score, rank, stars, reasons = calculate_score(
+#            analysis["RSI"],
+#            analysis["25日乖離率"],
+#            analysis["出来高倍率"],
+#            analysis["MACD"],
+#            analysis["Signal"],
+#            analysis["GC/DC"],
+#            analysis["ボリンジャー"],
+#            analysis["トレンド"]
+#        )
+
+        close_price = analysis["現在価格"]
+        previous_close = analysis["前日終値"]
+        change = analysis["前日差額"]
+        change_percent = analysis["前日比(%)"]
+
+        ma75 = analysis["75日線"]
+        ma200 = analysis["200日線"]
+        trend = analysis["トレンド"]
+
+        comment = make_ai_comment(
+            rsi,
+            kairi25,
+            volume_ratio,
+            macd,
+            macd_signal,
+            cross,
+            bollinger,
+            trend
+            
+        )
+        signal = get_signal(score)
+
 
         market_value = close_price * shares
         cost_value = purchase_price * shares
@@ -172,7 +208,7 @@ for _, row in watchlist.iterrows():
             "25日乖離率": kairi25,
             "出来高倍率": volume_ratio,
             "MACD": macd,
-            "Signal": signal,
+            "Signal": macd_signal,
             "GC/DC": cross,
             "ボリンジャー": bollinger,
 
@@ -184,7 +220,7 @@ for _, row in watchlist.iterrows():
             "スコア": score,
             "ランク": rank,
             "星": stars,
-            "AIコメント": comment,
+            "AIコメント":comment,
             "判定理由": "、".join(reasons),
 
             "前日終値": round(previous_close, 2),

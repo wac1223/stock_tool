@@ -136,6 +136,7 @@ for _, row in watchlist.iterrows():
         ma75 = analysis["75日線"]
         ma200 = analysis["200日線"]
         trend = analysis["トレンド"]
+        print(trend)
 
         # 判定
         score, rank, stars, reasons = calculate_score(

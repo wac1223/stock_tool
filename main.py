@@ -648,6 +648,11 @@ try:
     "損益率(%)",
     ascending=False
     )
+    
+    attention = result_df.sort_values(
+        ["スコア", "前日比(%)"],
+        ascending=[False, False]
+    ).iloc[0]
     change_amount = 0
     change_percent = 0
 
@@ -689,6 +694,9 @@ try:
     profit_icon = "🟢" if total_profit >= 0 else "🔴"
         
     message = (
+
+    
+
     "📊 今日の資産状況\n\n"
     f"総評価額: {total_market_value:,.0f}円\n"
     f"総損益: {total_profit:,.0f}円\n"
@@ -696,6 +704,12 @@ try:
     f"📈 前回通知から\n"
     f"{change_amount:+,.0f}円\n"
     f"({change_percent:+.2f}%)\n\n"
+
+    "🔥 今日の注目銘柄\n\n"
+    f"{attention['会社名']}\n"
+    f"現在価格: {attention['現在価格']}円\n"
+    f"シグナル: {attention['売買シグナル']}\n"
+    f"AI: {attention['AIコメント']}\n\n"
 )
 
 # =====================
@@ -714,6 +728,9 @@ try:
             f"前日比: {row['前日差額']}\n"
             f"損益: {row['損益']:,.0f}円\n"
             f"損益率: {row['損益率(%)']}%\n"
+            f"評価: {row['星']}\n"
+            f"強気スコア: {row['スコア']}点\n"
+            f"AI: {row['AIコメント']}\n\n"
             f"シグナル: {row['売買シグナル']}\n\n"
         )
 
@@ -737,6 +754,9 @@ try:
         f"前日比: {row['前日差額']} "
         f"損益: {row['損益']:,.0f}円\n"
         f"損益率: {row['損益率(%)']}%\n\n"
+        f"評価: {row['星']}\n"
+        f"強気スコア: {row['スコア']}点\n"
+        f"AI: {row['AIコメント']}\n\n"
         f"シグナル: {row['売買シグナル']}\n\n"
     )
     

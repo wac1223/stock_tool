@@ -123,8 +123,16 @@ for _, row in watchlist.iterrows():
         close_price = analysis["現在価格"]
         previous_close = analysis["前日終値"]
         change = analysis["前日差額"]
+       
         change_percent = analysis["前日比(%)"]
+        alert = ""
 
+        if change_percent >= 5:
+            alert = "🚀 急騰"
+
+        elif change_percent <= -5:
+            alert = "⚠️ 急落"
+            
         ma75 = analysis["75日線"]
         ma200 = analysis["200日線"]
         trend = analysis["トレンド"]
@@ -221,6 +229,7 @@ for _, row in watchlist.iterrows():
             "ランク": rank,
             "星": stars,
             "AIコメント":comment,
+            "アラート": alert,
             "判定理由": "、".join(reasons),
 
             "前日終値": round(previous_close, 2),
@@ -693,9 +702,7 @@ try:
             
     profit_icon = "🟢" if total_profit >= 0 else "🔴"
         
-    message = (
-
-    
+    message = (    
 
     "📊 今日の資産状況\n\n"
     f"総評価額: {total_market_value:,.0f}円\n"
@@ -709,6 +716,7 @@ try:
     f"{attention['会社名']}\n"
     f"現在価格: {attention['現在価格']}円\n"
     f"シグナル: {attention['売買シグナル']}\n"
+    f"{attention['アラート']}\n"
     f"AI: {attention['AIコメント']}\n\n"
 )
 
@@ -732,6 +740,7 @@ try:
             f"強気スコア: {row['スコア']}点\n"
             f"AI: {row['AIコメント']}\n\n"
             f"シグナル: {row['売買シグナル']}\n\n"
+            f"{attention['アラート']}\n"
         )
 
 # =====================

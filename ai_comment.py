@@ -97,19 +97,21 @@ def make_ai_comment(
 
     report += "\n"
 
-    if trend == "強い上昇":
+    if trend == "🟢 強い上昇":
         report += "📈 中長期的にも強い上昇トレンドが継続しています。\n"
         report += "押し目買い候補として注目です。"
 
-    elif trend == "上昇":
+    elif trend == "🟢 上昇":
         report += "👍 上昇トレンドを維持しています。\n"
         report += "順張りが有利な局面です。"
 
-    elif trend == "下降":
+    elif trend == "🟡 反発中":
+        report += "🟡 下落からの反発局面です。\n"
+        report += "今後のトレンド転換に注目しましょう。"
+
+    elif trend == "🔴 下降":
         report += "⚠️ 下落トレンドです。\n"
         report += "無理な買いは避け、反転サインを待ちましょう。"
 
     else:
-        report += "➡️ 方向感が乏しいため、様子見が無難です。"
-
-    return report
+        report += "➡️ トレンド判定ができません。"

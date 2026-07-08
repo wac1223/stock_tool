@@ -13,8 +13,11 @@ def make_ai_comment(
     """
 
     comments = []
+
+    # ==========================
+    # トレンド
+    # ==========================
     comments.append(trend)
-    comments.append("")
 
     # ==========================
     # MACD
@@ -24,7 +27,9 @@ def make_ai_comment(
     else:
         comments.append("MACDは売りシグナルです。")
 
-        # GC/DC
+    # ==========================
+    # GC / DC
+    # ==========================
     if cross == "GC":
         comments.append("ゴールデンクロスが発生し、上昇トレンド入りの可能性があります。")
 
@@ -62,13 +67,8 @@ def make_ai_comment(
         comments.append("出来高が増加しています。")
 
     # ==========================
-    # 総合コメント
-    # ==========================
-    if not comments:
-        return "大きな変化はありません。引き続き監視しましょう。"
-    
-    
     # ボリンジャーバンド
+    # ==========================
     if bollinger == "-2S":
         comments.append("ボリンジャーバンド-2σ付近です。売られすぎから反発する可能性があります。")
 
@@ -81,4 +81,35 @@ def make_ai_comment(
     elif bollinger == "+2S":
         comments.append("ボリンジャーバンド+2σ付近です。買われすぎの可能性があり、利益確定売りに注意です。")
 
-    return "\n".join(comments)
+    # ==========================
+    # コメントが無い場合
+    # ==========================
+    if len(comments) == 0:
+        return "大きな変化はありません。"
+
+    # ==========================
+    # AIレポート作成
+    # ==========================
+    report = "【AI分析レポート】\n\n"
+
+    for c in comments:
+        report += f"・{c}\n"
+
+    report += "\n"
+
+    if trend == "強い上昇":
+        report += "📈 中長期的にも強い上昇トレンドが継続しています。\n"
+        report += "押し目買い候補として注目です。"
+
+    elif trend == "上昇":
+        report += "👍 上昇トレンドを維持しています。\n"
+        report += "順張りが有利な局面です。"
+
+    elif trend == "下降":
+        report += "⚠️ 下落トレンドです。\n"
+        report += "無理な買いは避け、反転サインを待ちましょう。"
+
+    else:
+        report += "➡️ 方向感が乏しいため、様子見が無難です。"
+
+    return report

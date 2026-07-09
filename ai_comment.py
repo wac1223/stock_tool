@@ -80,7 +80,10 @@ def make_ai_comment(
 
     elif bollinger == "+2S":
         comments.append("ボリンジャーバンド+2σ付近です。買われすぎの可能性があり、利益確定売りに注意です。")
+    elif bollinger == "中心":
+        comments.append("ボリンジャーバンド中心付近で推移しています。")
 
+        
     # ==========================
     # コメントが無い場合
     # ==========================
@@ -115,3 +118,4 @@ def make_ai_comment(
 
     else:
         report += "➡️ トレンド判定ができません。"
+    return report

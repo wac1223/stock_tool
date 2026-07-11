@@ -99,7 +99,7 @@ def calculate_score(
         reasons.append("MACD売り")
         
 
-    # トレンド
+   # トレンド
     if trend == "🟢 強い上昇":
         score += 25
         reasons.append("長期上昇")
@@ -113,9 +113,13 @@ def calculate_score(
         reasons.append("反発局面")
 
     else:
-        score -= 15
-        reasons.append("下降トレンド")    
+        score -= 30
+        reasons.append("下降トレンド")
 
+    # 下降トレンドの上限
+    if score > 75:
+        score = 75
+        
     # 0～100点
     score = max(0, min(score, 100))
     # ランク判定

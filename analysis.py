@@ -72,17 +72,21 @@ def calculate_bollinger(close_prices):
     price = close_prices.iloc[-1]
 
     if price >= upper2.iloc[-1]:
-        return "+25"
+        return "+2S"
+
+    elif price >= ma25.iloc[-1] + std.iloc[-1]:
+        return "+1S"
 
     elif price <= lower2.iloc[-1]:
-        return "-25"
+        return "-2S"
 
-    elif price >= ma25.iloc[-1]:
-        return "+15"
+    elif price <= ma25.iloc[-1] - std.iloc[-1]:
+        return "-1S"
 
     else:
-        return "-15"
-    
+        return "中心"
+
+
 def calculate_kairi25(close_prices):
 
     close_price = close_prices.iloc[-1]

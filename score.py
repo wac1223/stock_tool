@@ -117,9 +117,10 @@ def calculate_score(
         reasons.append("下降トレンド")
 
     # 下降トレンドの上限
-    if score > 75:
+    if trend == "🔴 下降" and score > 75:
         score = 75
         
+            
     # 0～100点
     score = max(0, min(score, 100))
     # ランク判定

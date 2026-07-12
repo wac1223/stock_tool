@@ -263,6 +263,19 @@ worksheet.update(
     [result_df.columns.tolist()]
     + result_df.values.tolist()
 )
+
+#スコア履歴#
+score_ws = spreadsheet.worksheet("スコア履歴")
+
+for _, row in result_df.iterrows():
+
+    score_ws.append_row([
+        now.strftime("%Y-%m-%d %H:%M"),
+        row["銘柄"],
+        row["スコア"]
+    ])
+
+
 print("保有状況更新完了")
 
 us_df = analyze_us_market()

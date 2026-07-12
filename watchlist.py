@@ -153,6 +153,29 @@ def analyze_watchlist():
                 result["AIコメント"]
             ]]
             )
+        
+# =========================
+# スコア履歴保存
+# =========================
+
+    from datetime import datetime
+
+    history_sheet = spreadsheet.worksheet("スコア履歴")
+
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    rows = []
+
+    for _, row in result_df.iterrows():
+
+        rows.append([
+            today,
+            row["銘柄"],
+            row["強気スコア"]
+        ])
+
+    history_sheet.append_rows(rows)
+
     print(result_df)
 
     print("===== 監視銘柄分析終了 =====")

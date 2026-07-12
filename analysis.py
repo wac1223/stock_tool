@@ -177,4 +177,37 @@ def analyze_stock(symbol):
         "200日線": ma200,
         "トレンド": trend,
     }
+def analyze_us_market():
 
+    us_list = {
+        "NASDAQ": "^IXIC",
+        "S&P500": "^GSPC",
+        "SOX": "^SOX",
+        "NVDA": "NVDA",
+        "AMD": "AMD",
+        "TSMC": "TSM"
+    }
+
+    result = {}
+
+    for name, ticker in us_list.items():
+
+        stock = yf.Ticker(ticker)
+        data = stock.history(period="5d")
+
+        if len(data) < 2:
+            continue
+
+        current = float(data["Close"].iloc[-1])
+        prev = float(data["Close"].iloc[-2])
+
+        change = current - prev
+        change_pct = change / prev * 100
+
+        result[name] = {
+            "現在値": round(current, 2),
+            "前日比": round(change, 2),
+            "前日比％": round(change_pct, 2)
+        }
+
+    return result

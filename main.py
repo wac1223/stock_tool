@@ -788,7 +788,7 @@ try:
     print("===== BOTTOM3 =====")
     print(bottom3)
 #    for _, row in ranking.iterrows():
-   # message += watch_message
+    message += watch_message
    # 監視銘柄分析
     analyze_watchlist()
 
@@ -798,8 +798,9 @@ try:
     for _, row in us_df.iterrows():
 
         message += (
-            f"{row['市場']}\n"
-            f"{row['前日比％']:+.2f}%\n\n"
+            f"市場: {row['市場']}\n"
+            f"現在値: {row['現在値']:.2f}円\n"
+            f"前日比％: {row['前日比％']:+.2f}%\n\n"
         )
 
     print(type(us_df))

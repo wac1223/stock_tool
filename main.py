@@ -788,7 +788,7 @@ try:
     print("===== BOTTOM3 =====")
     print(bottom3)
 #    for _, row in ranking.iterrows():
-    message += watch_message
+   # message += watch_message
 #     message += (
 #        f"■ {row['会社名']}\n"
 #        f"終値: {row['現在価格']}\n"

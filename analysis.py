@@ -188,7 +188,7 @@ def analyze_us_market():
         "TSMC": "TSM"
     }
 
-    result = {}
+    results = []
 
     for name, ticker in us_list.items():
 
@@ -204,10 +204,11 @@ def analyze_us_market():
         change = current - prev
         change_pct = change / prev * 100
 
-        result[name] = {
+        results.append({
+            "市場": name,
             "現在値": round(current, 2),
             "前日比": round(change, 2),
             "前日比％": round(change_pct, 2)
-        }
+        })
 
-    return result
+    return pd.DataFrame(results)

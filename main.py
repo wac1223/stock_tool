@@ -789,6 +789,21 @@ try:
     print(bottom3)
 #    for _, row in ranking.iterrows():
    # message += watch_message
+   # 監視銘柄分析
+    analyze_watchlist()
+
+
+    message += "\n🇺🇸 米国市場\n\n"
+
+    for _, row in us_df.iterrows():
+
+        message += (
+            f"{row['市場']}\n"
+            f"{row['前日比％']:+.2f}%\n\n"
+        )
+
+    print(type(us_df))
+    print(us_df)
 #     message += (
 #        f"■ {row['会社名']}\n"
 #        f"終値: {row['現在価格']}\n"
@@ -843,21 +858,7 @@ try:
 except Exception as e:
     print("LINE送信失敗:", e)
 
-# 監視銘柄分析
-analyze_watchlist()
 
-
-message += "\n🇺🇸 米国市場\n\n"
-
-for _, row in us_df.iterrows():
-
-    message += (
-        f"{row['市場']}\n"
-        f"{row['前日比％']:+.2f}%\n\n"
-    )
-
-print(type(us_df))
-print(us_df)
 
 print("銘柄数:", len(result_df))
 print(result_df[["銘柄","評価額"]])

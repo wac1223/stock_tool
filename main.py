@@ -14,6 +14,7 @@ from sheets import spreadsheet
 from analysis import analyze_stock
 from score import calculate_score, get_signal
 from ai_comment import make_ai_comment
+from analysis import analyze_us_market
 
 now = datetime.now(ZoneInfo("Asia/Tokyo"))
 
@@ -264,6 +265,16 @@ worksheet.update(
 )
 print("保有状況更新完了")
 
+us_df = analyze_us_market()
+
+us_ws = spreadsheet.worksheet("米国市場")
+
+us_ws.clear()
+
+us_ws.update(
+    [us_df.columns.tolist()]
+    + us_df.values.tolist()
+)
 
 if result_df.empty:
     print("有効データなし終了")
@@ -835,6 +846,17 @@ except Exception as e:
 # 監視銘柄分析
 analyze_watchlist()
 
+
+message += "\n🇺🇸 米国市場\n\n"
+
+for _, row in us_df.iterrows():
+
+    message += (
+        f"{row['市場']}\n"
+        f"{row['前日比％']:+.2f}%\n\n"
+    )
+
+    
 print("銘柄数:", len(result_df))
 print(result_df[["銘柄","評価額"]])
 print(f"[END] 完了 銘柄数: {total}")

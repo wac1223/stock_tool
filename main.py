@@ -856,6 +856,8 @@ for _, row in us_df.iterrows():
         f"{row['前日比％']:+.2f}%\n\n"
     )
 
+print(type(us_df))
+print(us_df)
 
 print("銘柄数:", len(result_df))
 print(result_df[["銘柄","評価額"]])

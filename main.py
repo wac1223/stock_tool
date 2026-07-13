@@ -37,7 +37,7 @@ print(f"[START] {now} 実行開始")
 # =========================
 try:
     watchlist = pd.read_csv(
-    "https://docs.google.com/spreadsheets/d/1QndFPPD7_-0iFRQe_37oALHeDlJz_kvfvzrZZ1rSlAU/export?format=csv"
+    "https://docs.google.com/spreadsheets/d/1QndFPPD7_-0iFRQe_37oALHeDlJz_kvfvzrZZ1rSlAU/export?format=csv&gid=0"
     )
     
     print(watchlist.columns.tolist()) 
@@ -602,7 +602,7 @@ for _, row in watch_df.iterrows():
             continue
 
         current_price = float(data["Close"].iloc[-1])
-        year_data = data
+        year_data = data.tail(252)
         
         # 75日移動平均
         if len(data) >= 75:
@@ -641,6 +641,7 @@ for _, row in watch_df.iterrows():
             f"終値: {current_price:.0f}円\n"
             f"前日比: {change:+.0f}円 "
             f"({change_pct:+.2f}%)\n"
+         
         )
 
         if change_5d is not None:

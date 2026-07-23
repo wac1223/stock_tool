@@ -6,6 +6,7 @@ from analysis import analyze_stock
 from sheets import spreadsheet
 from ai_comment import make_ai_comment
 from score import calculate_score
+from buy_add_signal import get_buy_add_signal
 
 
 
@@ -70,7 +71,13 @@ def analyze_watchlist():
                 bollinger,
                 trend
             )
-            
+            buy_add_signal = get_buy_add_signal(
+                rsi,
+                kairi25,
+                bollinger,
+                trend,
+                cross
+)
 
 
             results.append({
@@ -95,6 +102,7 @@ def analyze_watchlist():
                 "評価": stars,
                 "理由": "・".join(reasons),
                 "AIコメント": ai_comment,
+                "買い足しシグナル": buy_add_signal,
             })
 
             print(
@@ -118,6 +126,7 @@ def analyze_watchlist():
                 f" 評価:{stars}"
                 f" 理由:{'・'.join(reasons)}"
                 f" AIコメント:{ai_comment}"
+                f" 買い足しシグナル:{buy_add_signal}"
             )
 
         except Exception as e:
@@ -131,7 +140,7 @@ def analyze_watchlist():
     for i, result in enumerate(results, start=2):
 
         watch_sheet.update(
-            range_name=f"E{result['row']}:V{result['row']}",
+            range_name=f"E{result['row']}:W{result['row']}",
             values=[[
                 result["現在値"],
                 result["前日比"],
@@ -150,7 +159,8 @@ def analyze_watchlist():
                 result["強気スコア"],
                 result["ランク"],
                 result["評価"],
-                result["AIコメント"]
+                result["AIコメント"],
+                result["買い足しシグナル"]   # ← これが W 列
             ]]
             )
         

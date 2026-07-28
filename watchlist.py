@@ -11,7 +11,6 @@ from buy_add_signal import get_buy_add_signal
 
 
 def analyze_watchlist():
-
     print("===== 監視銘柄分析開始 =====")
 
     watch_sheet = spreadsheet.worksheet("監視銘柄")
@@ -103,6 +102,8 @@ def analyze_watchlist():
                 "理由": "・".join(reasons),
                 "AIコメント": ai_comment,
                 "買い足しシグナル": buy_add_signal,
+                "決算日": analysis["決算日"],
+                "決算まで": analysis["決算まで"],
             })
 
             print(
@@ -140,7 +141,7 @@ def analyze_watchlist():
     for i, result in enumerate(results, start=2):
 
         watch_sheet.update(
-            range_name=f"E{result['row']}:W{result['row']}",
+            range_name=f"E{result['row']}:Y{result['row']}",
             values=[[
                 result["現在値"],
                 result["前日比"],
@@ -160,7 +161,9 @@ def analyze_watchlist():
                 result["ランク"],
                 result["評価"],
                 result["AIコメント"],
-                result["買い足しシグナル"]   # ← これが W 列
+                result["買い足しシグナル"],
+                result["決算日"],
+                result["決算まで"]
             ]]
             )
         

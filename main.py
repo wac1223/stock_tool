@@ -137,6 +137,7 @@ for _, row in watchlist.iterrows():
         ma75 = analysis["75日線"]
         ma200 = analysis["200日線"]
         trend = analysis["トレンド"]
+
         print(trend)
 
         # 判定
@@ -164,23 +165,10 @@ for _, row in watchlist.iterrows():
 
         signal_text = get_signal(score)
 
-#signal_text = get_signal(score)
-#        score, rank, stars, reasons = calculate_score(
-#            analysis["RSI"],
-#            analysis["25日乖離率"],
-#            analysis["出来高倍率"],
-#            analysis["MACD"],
-#            analysis["Signal"],
-#            analysis["GC/DC"],
-#            analysis["ボリンジャー"],
-#            analysis["トレンド"]
-#        )
-
         close_price = analysis["現在価格"]
         previous_close = analysis["前日終値"]
         change = analysis["前日差額"]
         change_percent = analysis["前日比(%)"]
-
         ma75 = analysis["75日線"]
         ma200 = analysis["200日線"]
         trend = analysis["トレンド"]
@@ -819,13 +807,6 @@ try:
 
     print(type(us_df))
     print(us_df)
-#     message += (
-#        f"■ {row['会社名']}\n"
-#        f"終値: {row['現在価格']}\n"
-#        f"前日比: {row['前日差額']} "
-#        f"({row['前日比(%)']}%)\n"
-#        f"評価損益: {row['損益']:,.0f}円 "
-#        f"({row['損益率(%)']}%)\n\n")
     sheet_url = "https://docs.google.com/spreadsheets/d/1QndFPPD7_-0iFRQe_37oALHeDlJz_kvfvzrZZ1rSlAU/edit"
 
     message += (

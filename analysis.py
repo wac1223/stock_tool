@@ -1,5 +1,6 @@
 import pandas as pd
 import yfinance as yf
+from datetime import datetime
 
 
 
@@ -104,7 +105,16 @@ def calculate_volume_ratio(data):
 
 
 def analyze_stock(symbol):
-    stock = yf.Ticker(symbol)
+
+    yf_symbol = symbol
+
+    # 日本株（4桁数字 または 247Aのような末尾A）なら .T を付ける
+    if (
+        (symbol.isdigit() and len(symbol) == 4)
+        or (len(symbol) == 4 and symbol.endswith("A"))
+    ):
+        yf_symbol += ".T"
+    stock = yf.Ticker(yf_symbol)
     data = stock.history(period="2y")
 
     if data is None or data.empty:
@@ -155,7 +165,8 @@ def analyze_stock(symbol):
     else:
         trend = "🔴 下降"
 
-    
+    earnings_date, earnings_days = get_earnings_date(yf_symbol)
+
     return {
         "symbol": symbol,
         "現在価格": round(close_price, 2),
@@ -176,6 +187,8 @@ def analyze_stock(symbol):
         "75日線": ma75,
         "200日線": ma200,
         "トレンド": trend,
+        "決算日": earnings_date,
+        "決算まで": earnings_days,
     }
 def analyze_us_market():
 
@@ -185,7 +198,11 @@ def analyze_us_market():
         "SOX": "^SOX",
         "NVDA": "NVDA",
         "AMD": "AMD",
-        "TSMC": "TSM"
+        "TSMC": "TSM",
+        "SKHY": "SKHY",
+     
+
+
     }
 
     results = []
@@ -212,3 +229,31 @@ def analyze_us_market():
         })
 
     return pd.DataFrame(results)
+
+def get_earnings_date(symbol):
+
+    try:
+        stock = yf.Ticker(symbol)
+
+        df = stock.get_earnings_dates()
+
+        if df is None or df.empty:
+            return "", ""
+
+        # 一番新しい未来の決算日を取得
+        future = df[df.index > pd.Timestamp.now(tz=df.index.tz)]
+
+        if future.empty:
+            return "", ""
+
+        earnings = future.index[0]
+
+        days = (earnings.date() - datetime.today().date()).days
+
+        return (
+            earnings.strftime("%Y/%m/%d"),
+            f"あと{days}日"
+        )
+
+    except Exception:
+        return "", ""

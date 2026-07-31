@@ -166,7 +166,8 @@ def analyze_stock(symbol):
         trend = "🔴 下降"
 
     earnings_date, earnings_days = get_earnings_date(yf_symbol)
-
+    print(symbol, earnings_date, earnings_days)
+    
     return {
         "symbol": symbol,
         "現在価格": round(close_price, 2),
@@ -233,30 +234,50 @@ def analyze_us_market():
 def get_earnings_date(symbol):
 
     try:
+
+        print("======", symbol, "======")
+
         stock = yf.Ticker(symbol)
 
         df = stock.get_earnings_dates()
 
-        if df is None or df.empty:
+        print(df)
+
+        if df is None:
+            print("df=None")
             return "", ""
 
-        # 今日の日付
-        today = datetime.today().date()
+        if df.empty:
+            print("empty")
+            return "", ""
 
-        # 今日以降の決算だけ取得
-        future = df[df.index.date >= today]
+        print(type(df.index))
+        print(df.index)
+
+        future = df[df.index >= pd.Timestamp.now(tz=df.index.tz)]
+
+        print("future")
+        print(future)
 
         if future.empty:
+            print("future empty")
             return "", ""
 
         earnings = future.index[0]
 
-        days = (earnings.date() - today).days
+        print("earnings", earnings)
+
+        days = (earnings.date() - datetime.today().date()).days
+
+        print("return", earnings.strftime("%Y/%m/%d"))
 
         return (
             earnings.strftime("%Y/%m/%d"),
             f"あと{days}日"
         )
 
-    except Exception:
+    except Exception as e:
+
+        print("ERROR:", e)
+
         return "", ""

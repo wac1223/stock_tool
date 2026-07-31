@@ -48,6 +48,7 @@ def analyze_watchlist():
             bollinger = analysis["ボリンジャー"]
 
             trend = analysis["トレンド"]
+            
 
             
             score, rank, stars, reasons = calculate_score(
@@ -128,6 +129,8 @@ def analyze_watchlist():
                 f" 理由:{'・'.join(reasons)}"
                 f" AIコメント:{ai_comment}"
                 f" 買い足しシグナル:{buy_add_signal}"
+                f" 決算日:{analysis['決算日']}"
+                f" 決算まで:{analysis['決算まで']}"
             )
 
         except Exception as e:

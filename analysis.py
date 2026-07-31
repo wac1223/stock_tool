@@ -240,15 +240,18 @@ def get_earnings_date(symbol):
         if df is None or df.empty:
             return "", ""
 
-        # 一番新しい未来の決算日を取得
-        future = df[df.index > pd.Timestamp.now(tz=df.index.tz)]
+        # 今日の日付
+        today = datetime.today().date()
+
+        # 今日以降の決算だけ取得
+        future = df[df.index.date >= today]
 
         if future.empty:
             return "", ""
 
         earnings = future.index[0]
 
-        days = (earnings.date() - datetime.today().date()).days
+        days = (earnings.date() - today).days
 
         return (
             earnings.strftime("%Y/%m/%d"),

@@ -8,35 +8,43 @@ from datetime import datetime
 def get_earnings_date(symbol):
     """
     次回決算日と残り日数を取得。
-    日本株（.T）でも米国株でも安定して動くように修正。
+    lxml が無くても、Yahooにデータがなくても落ちない。
     """
     try:
         stock = yf.Ticker(symbol)
-
-        # earnings_dates プロパティで取得
-        df = stock.earnings_dates
-        if df is None or df.empty:
-            return "", ""
-
-        # インデックスを datetime に統一してタイムゾーン除去
-        df.index = pd.to_datetime(df.index).tz_localize(None)
-        today = pd.Timestamp.now().normalize()
-
-        # 未来の決算日を抽出
-        future = df[df.index >= today]
-        if future.empty:
-            return "", ""
-
-        earnings = future.index[0]
-        days = (earnings.date() - datetime.today().date()).days
-
-        return (
-            earnings.strftime("%Y/%m/%d"),   # 例: "2026/10/29"
-            f"あと{days}日"                   # 例: "あと82日"
-        )
-
+        
+        # --- 方法1: earnings_dates（lxmlが必要な場合あり）---
+        try:
+            df = stock.earnings_dates
+            if df is not None and not df.empty:
+                df.index = pd.to_datetime(df.index).tz_localize(None)
+                today = pd.Timestamp.now().normalize()
+                future = df[df.index >= today]
+                if not future.empty:
+                    earnings = future.index[0]
+                    days = (earnings.date() - datetime.today().date()).days
+                    return earnings.strftime("%Y/%m/%d"), f"あと{days}日"
+        except Exception:
+            pass  # lxml エラーなどは無視
+        
+        # --- 方法2: calendar（フォールバック）---
+        try:
+            cal = stock.calendar
+            if isinstance(cal, dict):
+                d = cal.get('Earnings Date')
+                if isinstance(d, list) and d:
+                    dt = pd.to_datetime(d[0]).tz_localize(None)
+                    today = pd.Timestamp.now().normalize()
+                    days = (dt.date() - datetime.today().date()).days
+                    return dt.strftime("%Y/%m/%d"), f"あと{days}日"
+        except Exception:
+            pass
+        
+        # --- どっちも無理なら空欄 ---
+        return "", ""
+        
     except Exception as e:
-        print(f"[決算取得失敗 {symbol}] {e}")
+        # 最後の保険：絶対に落ちない
         return "", ""
 
 

@@ -102,9 +102,9 @@ def analyze_watchlist():
                 "評価": stars,
                 "理由": "・".join(reasons),
                 "AIコメント": ai_comment,
-                "買い足しシグナル": buy_add_signal,
-                "決算日": analysis["決算日"],
-                "決算まで": analysis["決算まで"],
+                "決算まで": analysis["決算まで"],       # ← W列へ
+                "決算日": analysis["決算日"],           # ← X列へ
+                "買い足しシグナル": buy_add_signal,   # ← Y列へ
             })
 
             print(
@@ -128,9 +128,10 @@ def analyze_watchlist():
                 f" 評価:{stars}"
                 f" 理由:{'・'.join(reasons)}"
                 f" AIコメント:{ai_comment}"
-                f" 買い足しシグナル:{buy_add_signal}"
                 f" 決算日:{analysis['決算日']}"
                 f" 決算まで:{analysis['決算まで']}"
+                f" 買い足しシグナル:{buy_add_signal}"
+
             )
 
         except Exception as e:
@@ -164,9 +165,9 @@ def analyze_watchlist():
                 result["ランク"],
                 result["評価"],
                 result["AIコメント"],
-                result["買い足しシグナル"],
                 result["決算日"],
-                result["決算まで"]
+                result["決算まで"],
+                result["買い足しシグナル"],
             ]]
             )
         

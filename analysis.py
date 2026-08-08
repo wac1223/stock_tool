@@ -3,117 +3,125 @@ import yfinance as yf
 from datetime import datetime
 
 
+# ==================== 決算日取得（analyze_stockより前に定義）====================
+
+def get_earnings_date(symbol):
+    """
+    次回決算日と残り日数を取得。
+    日本株（.T）でも米国株でも安定して動くように修正。
+    """
+    try:
+        stock = yf.Ticker(symbol)
+
+        # earnings_dates プロパティで取得
+        df = stock.earnings_dates
+        if df is None or df.empty:
+            return "", ""
+
+        # インデックスを datetime に統一してタイムゾーン除去
+        df.index = pd.to_datetime(df.index).tz_localize(None)
+        today = pd.Timestamp.now().normalize()
+
+        # 未来の決算日を抽出
+        future = df[df.index >= today]
+        if future.empty:
+            return "", ""
+
+        earnings = future.index[0]
+        days = (earnings.date() - datetime.today().date()).days
+
+        return (
+            earnings.strftime("%Y/%m/%d"),   # 例: "2026/10/29"
+            f"あと{days}日"                   # 例: "あと82日"
+        )
+
+    except Exception as e:
+        print(f"[決算取得失敗 {symbol}] {e}")
+        return "", ""
+
+
+# ==================== テクニカル指標計算 ====================
 
 def calculate_rsi(close_prices, period=14):
-
     delta = close_prices.diff()
-
     gain = delta.where(delta > 0, 0)
     loss = -delta.where(delta < 0, 0)
-
     avg_gain = gain.rolling(window=period).mean()
     avg_loss = loss.rolling(window=period).mean()
-
     rs = avg_gain / avg_loss
-
     rsi = 100 - (100 / (1 + rs))
-
     return round(float(rsi.iloc[-1]), 1)
 
 
-###MACD計算
 def calculate_macd(close_prices):
-
     ema12 = close_prices.ewm(span=12, adjust=False).mean()
-
     ema26 = close_prices.ewm(span=26, adjust=False).mean()
-
     macd = ema12 - ema26
-
     signal = macd.ewm(span=9, adjust=False).mean()
-
     return (
         round(float(macd.iloc[-1]), 2),
         round(float(signal.iloc[-1]), 2)
     )
 
+
 def calculate_cross(close_prices):
-
     ma5 = close_prices.rolling(5).mean()
-
     ma25 = close_prices.rolling(25).mean()
-
-    # 前日
     prev_ma5 = ma5.iloc[-2]
     prev_ma25 = ma25.iloc[-2]
-
-    # 今日
     now_ma5 = ma5.iloc[-1]
     now_ma25 = ma25.iloc[-1]
 
-    # ゴールデンクロス
     if prev_ma5 <= prev_ma25 and now_ma5 > now_ma25:
         return "GC"
-
-    # デッドクロス
     elif prev_ma5 >= prev_ma25 and now_ma5 < now_ma25:
         return "DC"
-
     return "-"
 
+
 def calculate_bollinger(close_prices):
-
     ma25 = close_prices.rolling(25).mean()
-
     std = close_prices.rolling(25).std()
-
     upper2 = ma25 + std * 2
     lower2 = ma25 - std * 2
-
     price = close_prices.iloc[-1]
 
     if price >= upper2.iloc[-1]:
         return "+2S"
-
     elif price >= ma25.iloc[-1] + std.iloc[-1]:
         return "+1S"
-
     elif price <= lower2.iloc[-1]:
         return "-2S"
-
     elif price <= ma25.iloc[-1] - std.iloc[-1]:
         return "-1S"
-
     else:
         return "中心"
 
 
 def calculate_kairi25(close_prices):
-
     close_price = close_prices.iloc[-1]
     ma25 = close_prices.rolling(25).mean().iloc[-1]
-
     return round((close_price - ma25) / ma25 * 100, 2)
 
 
 def calculate_volume_ratio(data):
-
     volume = data["Volume"].iloc[-1]
     volume5 = data["Volume"].rolling(5).mean().iloc[-1]
-
     return round(volume / volume5, 2)
 
 
-def analyze_stock(symbol):
+# ==================== メイン分析関数 ====================
 
+def analyze_stock(symbol):
     yf_symbol = symbol
 
-    # 日本株（4桁数字 または 247Aのような末尾A）なら .T を付ける
+    # 日本株（4桁数字 または 末尾A）なら .T を付ける
     if (
         (symbol.isdigit() and len(symbol) == 4)
         or (len(symbol) == 4 and symbol.endswith("A"))
     ):
         yf_symbol += ".T"
+
     stock = yf.Ticker(yf_symbol)
     data = stock.history(period="2y")
 
@@ -123,7 +131,6 @@ def analyze_stock(symbol):
 
     close_prices = data["Close"].dropna()
 
-    # 終値が2つ未満なら終了
     if len(close_prices) < 2:
         return None
 
@@ -132,12 +139,9 @@ def analyze_stock(symbol):
 
     change = close_price - previous_close
     change_percent = change / previous_close * 100
-
     volume = int(data["Volume"].iloc[-1])
 
     rsi = calculate_rsi(close_prices)
-   
-   
     kairi25 = calculate_kairi25(close_prices)
     volume_ratio = calculate_volume_ratio(data)
 
@@ -165,9 +169,10 @@ def analyze_stock(symbol):
     else:
         trend = "🔴 下降"
 
+    # ===== 決算情報取得 =====
     earnings_date, earnings_days = get_earnings_date(yf_symbol)
-    print(symbol, earnings_date, earnings_days)
-    
+    print(f"{symbol} 決算日:{earnings_date} {earnings_days}")
+
     return {
         "symbol": symbol,
         "現在価格": round(close_price, 2),
@@ -175,41 +180,41 @@ def analyze_stock(symbol):
         "前日差額": round(change, 2),
         "前日比(%)": round(change_percent, 2),
         "出来高": volume,
-
         "RSI": rsi,
         "25日乖離率": kairi25,
         "出来高倍率": volume_ratio,
-
         "MACD": macd,
         "Signal": signal,
         "GC/DC": cross,
         "ボリンジャー": bollinger,
-
         "75日線": ma75,
         "200日線": ma200,
         "トレンド": trend,
         "決算日": earnings_date,
         "決算まで": earnings_days,
     }
-def analyze_us_market():
 
+
+# ==================== 米国市場分析 ====================
+
+def analyze_us_market():
     us_list = {
         "NASDAQ": "^IXIC",
         "S&P500": "^GSPC",
         "SOX": "^SOX",
         "NVDA": "NVDA",
+        "MSFT": "MSFT",
+        "GOOGL": "GOOGL",
+        "aapl": "aapl",
         "AMD": "AMD",
         "TSMC": "TSM",
         "SKHY": "SKHY",
-     
-
-
+        "PENG": "PENG"
     }
 
     results = []
 
     for name, ticker in us_list.items():
-
         stock = yf.Ticker(ticker)
         data = stock.history(period="5d")
 
@@ -218,7 +223,6 @@ def analyze_us_market():
 
         current = float(data["Close"].iloc[-1])
         prev = float(data["Close"].iloc[-2])
-
         change = current - prev
         change_pct = change / prev * 100
 
@@ -230,54 +234,3 @@ def analyze_us_market():
         })
 
     return pd.DataFrame(results)
-
-def get_earnings_date(symbol):
-
-    try:
-
-        print("======", symbol, "======")
-
-        stock = yf.Ticker(symbol)
-
-        df = stock.get_earnings_dates()
-
-        print(df)
-
-        if df is None:
-            print("df=None")
-            return "", ""
-
-        if df.empty:
-            print("empty")
-            return "", ""
-
-        print(type(df.index))
-        print(df.index)
-
-        future = df[df.index >= pd.Timestamp.now(tz=df.index.tz)]
-
-        print("future")
-        print(future)
-
-        if future.empty:
-            print("future empty")
-            return "", ""
-
-        earnings = future.index[0]
-
-        print("earnings", earnings)
-
-        days = (earnings.date() - datetime.today().date()).days
-
-        print("return", earnings.strftime("%Y/%m/%d"))
-
-        return (
-            earnings.strftime("%Y/%m/%d"),
-            f"あと{days}日"
-        )
-
-    except Exception as e:
-
-        print("ERROR:", e)
-
-        return "", ""

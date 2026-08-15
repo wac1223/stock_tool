@@ -1,6 +1,35 @@
+import os
+from datetime import datetime
+
 import pandas as pd
 import yfinance as yf
-from datetime import datetime
+
+
+EARNINGS_OVERRIDES_FILE = "earnings_overrides.csv"
+
+
+def _format_earnings_date(value):
+    """日付と「あと何日」を安全に整形する。"""
+    date = pd.Timestamp(value)
+    if date.tzinfo is not None:
+        date = date.tz_localize(None)
+    date = date.normalize()
+    days = (date.date() - datetime.today().date()).days
+    return date.strftime("%Y/%m/%d"), f"あと{days}日"
+
+
+def _get_manual_earnings_date(symbol):
+    """Yahoo に日付がない銘柄用の任意上書き。"""
+    if not os.path.exists(EARNINGS_OVERRIDES_FILE):
+        return None
+    try:
+        overrides = pd.read_csv(EARNINGS_OVERRIDES_FILE, dtype={"symbol": str})
+        row = overrides.loc[overrides["symbol"].str.upper() == symbol.upper()]
+        if not row.empty:
+            return _format_earnings_date(row.iloc[0]["earnings_date"])
+    except (KeyError, OSError, ValueError):
+        pass
+    return None
 
 
 # ==================== 決算日取得（analyze_stockより前に定義）====================
@@ -12,6 +41,17 @@ def get_earnings_date(symbol):
     """
     try:
         stock = yf.Ticker(symbol)
+
+        # yfinance の公開メソッドを優先する。property より失敗しにくい版がある。
+        try:
+            df = stock.get_earnings_dates(limit=12)
+            if df is not None and not df.empty:
+                dates = pd.to_datetime(df.index, errors="coerce")
+                future_dates = [date for date in dates if date >= pd.Timestamp.now(tz=date.tz).normalize()]
+                if future_dates:
+                    return _format_earnings_date(future_dates[0])
+        except Exception:
+            pass
         
         # --- 方法1: earnings_dates（lxmlが必要な場合あり）---
         try:
@@ -41,6 +81,9 @@ def get_earnings_date(symbol):
             pass
         
         # --- どっちも無理なら空欄 ---
+        manual_date = _get_manual_earnings_date(symbol)
+        if manual_date:
+            return manual_date
         return "", ""
         
     except Exception as e:

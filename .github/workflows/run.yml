@@ -2,6 +2,17 @@ name: stock-bot
 
 on:
   workflow_dispatch:
+    inputs:
+      run_backtest:
+        description: "監視銘柄を対象にバックテストも実行する"
+        required: false
+        default: false
+        type: boolean
+      backtest_start:
+        description: "バックテスト開始日 (YYYY-MM-DD)"
+        required: false
+        default: "2024-01-01"
+        type: string
 
 permissions:
   contents: write
@@ -36,13 +47,30 @@ jobs:
           echo "=== Running stock bot ==="
           python main.py
 
+      - name: Run backtest for watchlist
+        if: ${{ inputs.run_backtest }}
+        env:
+          GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
+        run: |
+          echo "=== Running backtest for watchlist ==="
+          python backtest.py --from-watchlist --start "${{ inputs.backtest_start }}"
+
+      - name: Upload backtest results
+        if: ${{ inputs.run_backtest }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: backtest-output
+          path: backtest_output/
+          if-no-files-found: error
+
       - name: Commit & Push asset history
         run: |
           echo "=== Commit changes ==="
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
-          git add .
+          # バックテスト結果は Actions の成果物として配布し、履歴コミットは肥大化させない。
+          git add . ':!backtest_output'
           git commit -m "auto update history" || exit 0
 
           echo "=== Push changes ==="

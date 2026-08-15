@@ -27,6 +27,9 @@ from score import calculate_score
 
 
 OUTPUT_DIR = Path("backtest_output")
+SHEET_SUMMARY = "BTサマリー"
+SHEET_EQUITY = "BT資産推移"
+SHEET_TRADES = "BT売買履歴"
 
 
 @dataclass
@@ -101,6 +104,50 @@ def load_symbols_from_watchlist(sheet_name: str) -> list[str]:
         raise ValueError(f"シート『{sheet_name}』に「銘柄」列がありません。")
     symbols = watchlist["銘柄"].dropna().astype(str).str.strip()
     return symbols[symbols != ""].drop_duplicates().tolist()
+
+
+def _get_or_create_worksheet(spreadsheet, title: str, rows: int, cols: int):
+    try:
+        return spreadsheet.worksheet(title)
+    except Exception as error:
+        # gspread の WorksheetNotFound を直接参照せず、既存コードと同じ接続で作る。
+        if error.__class__.__name__ != "WorksheetNotFound":
+            raise
+        return spreadsheet.add_worksheet(title=title, rows=rows, cols=cols)
+
+
+def _write_dataframe(worksheet, dataframe: pd.DataFrame) -> None:
+    """DataFrame を Google Sheets が受け取れる値に整形して全置換する。"""
+    output = dataframe.copy()
+    for column in output.columns:
+        if pd.api.types.is_datetime64_any_dtype(output[column]):
+            output[column] = output[column].dt.strftime("%Y-%m-%d")
+    output = output.where(pd.notna(output), "")
+    values = [output.columns.tolist()] + output.astype(object).values.tolist()
+    worksheet.clear()
+    worksheet.update(values, "A1")
+
+
+def upload_results_to_sheets(trades: pd.DataFrame, equity: pd.DataFrame, summary: dict) -> None:
+    """現在の運用用スプレッドシートへ、バックテスト結果を3タブで出力する。"""
+    from sheets import spreadsheet
+
+    summary_rows = [["項目", "値"]]
+    for key, value in summary.items():
+        if key == "rules":
+            for rule, rule_value in value.items():
+                summary_rows.append([f"rule.{rule}", rule_value])
+        else:
+            summary_rows.append([key, value])
+    summary_ws = _get_or_create_worksheet(spreadsheet, SHEET_SUMMARY, 30, 4)
+    summary_ws.clear()
+    summary_ws.update(summary_rows, "A1")
+
+    equity_ws = _get_or_create_worksheet(spreadsheet, SHEET_EQUITY, max(100, len(equity) + 10), 8)
+    trades_ws = _get_or_create_worksheet(spreadsheet, SHEET_TRADES, max(100, len(trades) + 10), 12)
+    _write_dataframe(equity_ws, equity)
+    _write_dataframe(trades_ws, trades)
+    print(f"Google Sheets に {SHEET_SUMMARY} / {SHEET_EQUITY} / {SHEET_TRADES} を更新しました。")
 
 
 def run_backtest(
@@ -211,6 +258,7 @@ def main() -> None:
     parser.add_argument("--buy-score", type=int, default=75)
     parser.add_argument("--sell-score", type=int, default=40)
     parser.add_argument("--max-holding-days", type=int, default=20)
+    parser.add_argument("--upload-to-sheets", action="store_true", help="結果を既存のGoogleスプレッドシートへ出力する")
     args = parser.parse_args()
 
     symbols = args.symbols
@@ -229,6 +277,8 @@ def main() -> None:
     trades.to_csv(OUTPUT_DIR / "trades.csv", index=False, encoding="utf-8-sig")
     equity.to_csv(OUTPUT_DIR / "equity.csv", index=False, encoding="utf-8-sig")
     (OUTPUT_DIR / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+    if args.upload_to_sheets:
+        upload_results_to_sheets(trades, equity, summary)
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     print(f"結果を {OUTPUT_DIR.resolve()} に保存しました。")
 

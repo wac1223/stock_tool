@@ -168,3 +168,4 @@ def get_signal(score):
 
     else:
         return "🔴 売り注意"
+

@@ -91,6 +91,18 @@ def load_prices(symbols: list[str], start: str, end: str | None) -> dict[str, pd
     return prices
 
 
+def load_symbols_from_watchlist(sheet_name: str) -> list[str]:
+    """main.py と同じ Google Sheets の監視銘柄をバックテスト対象にする。"""
+    from sheets import spreadsheet
+
+    worksheet = spreadsheet.worksheet(sheet_name)
+    watchlist = pd.DataFrame(worksheet.get_all_records())
+    if "銘柄" not in watchlist.columns:
+        raise ValueError(f"シート『{sheet_name}』に「銘柄」列がありません。")
+    symbols = watchlist["銘柄"].dropna().astype(str).str.strip()
+    return symbols[symbols != ""].drop_duplicates().tolist()
+
+
 def run_backtest(
     prices: dict[str, pd.DataFrame],
     start: str,
@@ -188,7 +200,10 @@ def run_backtest(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="スコアに基づく仮想売買バックテスト")
-    parser.add_argument("--symbols", nargs="+", required=True, help="例: 7203 6758 AAPL")
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("--symbols", nargs="+", help="例: 7203 6758 AAPL")
+    source.add_argument("--from-watchlist", action="store_true", help="Google Sheets の監視銘柄を使う")
+    parser.add_argument("--watchlist-sheet", default="監視銘柄", help="--from-watchlist 時のシート名")
     parser.add_argument("--start", default="2024-01-01")
     parser.add_argument("--end", default=None)
     parser.add_argument("--initial-cash", type=float, default=1_000_000)
@@ -198,7 +213,12 @@ def main() -> None:
     parser.add_argument("--max-holding-days", type=int, default=20)
     args = parser.parse_args()
 
-    prices = load_prices(args.symbols, args.start, args.end)
+    symbols = args.symbols
+    if args.from_watchlist:
+        symbols = load_symbols_from_watchlist(args.watchlist_sheet)
+        print(f"監視銘柄シートから {len(symbols)} 銘柄を読み込みました: {', '.join(symbols)}")
+
+    prices = load_prices(symbols, args.start, args.end)
     if not prices:
         raise SystemExit("有効な株価データがありません。銘柄コードを確認してください。")
     trades, equity, summary = run_backtest(

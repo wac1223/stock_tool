@@ -10,6 +10,7 @@
 import argparse
 import json
 from dataclasses import dataclass
+from datetime import date, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -123,6 +124,15 @@ def _write_dataframe(worksheet, dataframe: pd.DataFrame) -> None:
         if pd.api.types.is_datetime64_any_dtype(output[column]):
             output[column] = output[column].dt.strftime("%Y-%m-%d")
     output = output.where(pd.notna(output), "")
+    # day.date() で作る object 型の date 列は上の datetime64 判定を通らない。
+    # gspread は date を JSON 化できないため、セル単位でも文字列に変換する。
+    output = output.apply(
+        lambda column: column.map(
+            lambda value: value.strftime("%Y-%m-%d")
+            if isinstance(value, (date, datetime, pd.Timestamp))
+            else value
+        )
+    )
     values = [output.columns.tolist()] + output.astype(object).values.tolist()
     worksheet.clear()
     worksheet.update(values, "A1")

@@ -53,7 +53,7 @@ jobs:
           GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
         run: |
           echo "=== Running backtest for watchlist ==="
-          python backtest.py --from-watchlist --start "${{ inputs.backtest_start }}"
+          python backtest.py --from-watchlist --start "${{ inputs.backtest_start }}" --upload-to-sheets
 
       - name: Upload backtest results
         if: ${{ inputs.run_backtest }}

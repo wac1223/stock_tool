@@ -32,6 +32,20 @@ SHEET_SUMMARY = "BTサマリー"
 SHEET_EQUITY = "BT資産推移"
 SHEET_TRADES = "BT売買履歴"
 
+SUMMARY_LABELS = {
+    "initial_cash": "初期資金",
+    "final_equity": "最終資産",
+    "return_pct": "収益率（%）",
+    "closed_trades": "決済済み取引数",
+    "win_rate_pct": "勝率（%）",
+}
+RULE_LABELS = {
+    "buy_score_gte": "買い条件（スコアがこの値以上）",
+    "sell_score_lt": "売り条件（スコアがこの値未満）",
+    "max_holding_days": "最大保有日数",
+    "max_positions": "最大保有銘柄数",
+}
+
 
 @dataclass
 class Position:
@@ -146,9 +160,9 @@ def upload_results_to_sheets(trades: pd.DataFrame, equity: pd.DataFrame, summary
     for key, value in summary.items():
         if key == "rules":
             for rule, rule_value in value.items():
-                summary_rows.append([f"rule.{rule}", rule_value])
+                summary_rows.append([RULE_LABELS.get(rule, rule), rule_value])
         else:
-            summary_rows.append([key, value])
+            summary_rows.append([SUMMARY_LABELS.get(key, key), value])
     summary_ws = _get_or_create_worksheet(spreadsheet, SHEET_SUMMARY, 30, 4)
     summary_ws.clear()
     summary_ws.update(summary_rows, "A1")

@@ -45,6 +45,23 @@ RULE_LABELS = {
     "max_holding_days": "最大保有日数",
     "max_positions": "最大保有銘柄数",
 }
+SHEET_COLUMN_LABELS = {
+    "date": "日付",
+    "cash": "現金",
+    "market_value": "保有株評価額",
+    "equity": "総資産",
+    "open_positions": "保有銘柄数",
+    "symbol": "銘柄",
+    "action": "売買",
+    "price": "約定価格",
+    "shares": "株数",
+    "amount": "約定金額",
+    "reason": "売買理由",
+    "entry_date": "買付日",
+    "entry_price": "買付価格",
+    "profit": "損益",
+    "return_pct": "損益率（%）",
+}
 
 
 @dataclass
@@ -133,7 +150,9 @@ def _get_or_create_worksheet(spreadsheet, title: str, rows: int, cols: int):
 
 def _write_dataframe(worksheet, dataframe: pd.DataFrame) -> None:
     """DataFrame を Google Sheets が受け取れる値に整形して全置換する。"""
-    output = dataframe.copy()
+    output = dataframe.rename(columns=SHEET_COLUMN_LABELS).copy()
+    if "売買" in output.columns:
+        output["売買"] = output["売買"].replace({"BUY": "買い", "SELL": "売り"})
     for column in output.columns:
         if pd.api.types.is_datetime64_any_dtype(output[column]):
             output[column] = output[column].dt.strftime("%Y-%m-%d")
@@ -235,16 +254,16 @@ def run_backtest(
             if symbol in positions:
                 age = (day - positions[symbol].entry_date).days
                 if score < sell_score:
-                    pending_orders.append(("SELL", symbol, day, f"score<{sell_score}"))
+                    pending_orders.append(("SELL", symbol, day, f"スコアが{sell_score}点未満"))
                 elif age >= max_holding_days:
-                    pending_orders.append(("SELL", symbol, day, f"holding_days>={max_holding_days}"))
+                    pending_orders.append(("SELL", symbol, day, f"保有日数が{max_holding_days}日以上"))
             elif score >= buy_score:
                 candidates.append((score, symbol))
 
         # 同日に候補が多い場合はスコアの高い順に、空き枠分だけ発注する。
         slots = max_positions - len(positions)
         for score, symbol in sorted(candidates, reverse=True)[:slots]:
-            pending_orders.append(("BUY", symbol, day, f"score>={buy_score} ({score})"))
+            pending_orders.append(("BUY", symbol, day, f"スコアが{buy_score}点以上（{score}点）"))
 
         market_value = 0.0
         for symbol, position in positions.items():
